@@ -20,7 +20,7 @@ public class ControlResource
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String hello() {
-		return "v: 0001";
+		return "v: 0002";
 	}
 
 }
