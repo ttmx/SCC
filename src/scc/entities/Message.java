@@ -1,66 +1,75 @@
 package scc.entities;
 
 public class Message {
-    private int id;
-    private int senderId;
-    private int mediaId;
-    private int channelId;
-
-    private int replyId;
+    private String id;
+    private String replyTo;
+    private String channel;
+    private String user;
+    private String text;
+    private String imageId;
 
     public Message() {
     }
 
-    public Message(int id, int senderId, int mediaId, int channelId, int replyId) {
+    public Message(String id, String replyTo, String channel, String user, String text, String imageId) {
         this.id = id;
-        this.senderId = senderId;
-        this.mediaId = mediaId;
-        this.channelId = channelId;
-        this.replyId = replyId;
+        this.replyTo = replyTo;
+        this.channel = channel;
+        this.user = user;
+        this.text = text;
+        this.imageId = imageId;
     }
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public int getName() {
-        return senderId;
+    public String getReplyTo() {
+        return this.replyTo;
     }
 
-    public void setName(int name) {
-        this.senderId = name;
+    public void setReplyTo(String replyTo) {
+        this.replyTo = replyTo;
     }
 
-    public int getMediaId() {
-        return mediaId;
+    public String getChannel() {
+        return this.channel;
     }
 
-    public void setMediaId(int mediaId) {
-        this.mediaId = mediaId;
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 
-    public int getChannelId() {
-        return channelId;
+    public String getUser() {
+        return this.user;
     }
 
-    public void setChannelId(int channelId) {
-        this.channelId = channelId;
+    public void setUser(String user) {
+        this.user = user;
     }
 
-    public int getReplyId() {
-        return replyId;
+    public String getText() {
+        return this.text;
     }
 
-    public void setReplyId(int replyId) {
-        this.replyId = replyId;
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public String getImageId() {
+        return this.imageId;
+    }
+
+    public void setImageId(String imageId) {
+        this.imageId = imageId;
     }
 
     @Override
     public String toString() {
-        return "User [id=" + id + ", name=" + senderId + ", pwd=" + mediaId + ", photoId=" + channelId + "]";
+        return "Message [id=" + this.id + ", replyTo=" + this.replyTo + ", channel=" + this.channel + ", user=" + this.user + ", text=" + this.text + ", imageId=" + imageId + "]";
     }
 }

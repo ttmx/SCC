@@ -3,68 +3,58 @@ package scc.entities;
 import java.util.List;
 
 public class Channel {
-    public enum Status {
-        PRIVATE,
-        PUBLIC
+
+    private String id;
+    private String name;
+    private String owner;
+    private boolean publicChannel;
+    private List<Integer> members;
+
+    public Channel() {
     }
 
-    private String name;
-    private int id;
-    private int ownerId;
-    private List<Integer> userIdList;
+    public Channel(String id, String name, String owner, boolean publicChannel, List<Integer> members) {
+        this.id = id;
+        this.name = name;
+        this.owner = owner;
+        this.publicChannel = publicChannel;
+        this.members = members;
+    }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public int getId() {
-        return id;
+    public String getId() {
+        return this.id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
-    public int getOwnerId() {
-        return ownerId;
+    public String getOwner() { return this.owner; }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
-    public void setOwnerId(int ownerId) {
-        this.ownerId = ownerId;
+    public List<Integer> getMembers() { return this.members; }
+
+    public void setMembers(List<Integer> members) {
+        this.members = members;
     }
 
-    public List<Integer> getUserIdList() {
-        return userIdList;
+    public boolean getPublicChannel() {
+        return publicChannel;
     }
 
-    public void setUserIdList(List<Integer> userIdList) {
-        this.userIdList = userIdList;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    private Status status;
-
-    public Channel() {
-    }
-
-
-    public Channel(String name, int id, Status status, int ownerId, List<Integer> userIdList) {
-        this.name = name;
-        this.id = id;
-        this.status = status;
-        this.ownerId = ownerId;
-        this.userIdList = userIdList;
+    public void setPublicChannel(boolean publicChannel) {
+        this.publicChannel = publicChannel;
     }
 
 }
