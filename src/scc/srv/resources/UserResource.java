@@ -9,9 +9,11 @@ import scc.Env;
 import scc.entities.Channel;
 import scc.entities.User;
 import scc.utils.Hash;
+import scc.utils.Log;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Path("/user")
@@ -32,7 +34,7 @@ public class UserResource {
         if (userDoc != null) {
             return User.fromDocument(userDoc);
         }
-        return new User("id","name","pwd","photoid",null);
+        return null;
     }
 
     @Path("/{id}/channels")
@@ -46,7 +48,7 @@ public class UserResource {
             return user.getChannelIds();
         }
         else {
-            return null;
+            throw new NotFoundException();
         }
     }
 
@@ -54,9 +56,12 @@ public class UserResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void createUser(User user){
-        System.out.println("Tried to create user");
+        Log.d("UserResource","Creating "+ user.toString());
+
         if (mCol.find(new Document("_id",user.getId())).first() == null) {
             insertUser(user);
+        }else{
+            throw new WebApplicationException(Response.Status.CONFLICT);
         }
     }
 
@@ -64,14 +69,16 @@ public class UserResource {
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
     public void update(User user, @HeaderParam("pass") String password){
-        var d = mCol.find(new Document("_id",user.getId())).first();
+        Document d = mCol.find(new Document("_id",user.getId())).first();
         if(Hash.of(password).equals(d.get("pwd"))){
+
             insertUser(user);
         }
     }
 
     private void insertUser(User u){
-        u.setPwd(Hash.of(u.getPwd()));
+        if (u.getPwd()!= null)
+            u.setPwd(Hash.of(u.getPwd()));
         mCol.insertOne(u.toDocument());
     }
 }
