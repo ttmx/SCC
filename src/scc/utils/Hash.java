@@ -15,7 +15,7 @@ public class Hash {
 
 	static {
 		try {
-			md = MessageDigest.getInstance("SHA1");
+			md = MessageDigest.getInstance("SHA-256");
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}

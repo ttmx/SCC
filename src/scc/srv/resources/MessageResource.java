@@ -10,7 +10,7 @@ public class MessageResource {
     @Path("/{channel}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    int post(int channel) {
+    public int post(int channel) {
         return 0;
     }
 }
