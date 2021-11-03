@@ -66,6 +66,11 @@
             <version>8.6.6</version>
         </dependency>
         <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-storage-blob</artifactId>
+            <version>12.14.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-war-plugin</artifactId>
             <version>3.2.1</version>
@@ -119,8 +124,8 @@
                             </resource>
                         </resources>
                     </deployment>
-                    <resourceGroup>scc-backend-rg-bst</resourceGroup>
-                    <appName>scc-backend-bst</appName>
+                    <resourceGroup>scc-backend-rg-bst-55697</resourceGroup>
+                    <appName>scc-backend-bst-55697</appName>
                 </configuration>
             </plugin>
         </plugins>
