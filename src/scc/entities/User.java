@@ -6,6 +6,15 @@ import java.util.Arrays;
 import java.util.List;
 
 public class User {
+
+    public static final String ID = "_id";
+    public static final String NAME = "name";
+    public static final String PWD = "pwd";
+    public static final String PHOTOID = "photoId";
+    public static final String CHANNELIDS = "channelIds";
+
+
+
     private String id;
     private String name;
     private String pwd;
@@ -26,11 +35,11 @@ public class User {
 
     static public User fromDocument(Document doc) {
         return new User(
-                (String)doc.get("_id"),
-                (String)doc.get("name"),
-                (String)doc.get("pwd"),
-                (String)doc.get("photoId"),
-                (String[]) ((List<String>)doc.get("channelIds")).toArray()
+                (String) doc.get(ID),
+                (String) doc.get(NAME),
+                (String) doc.get(PWD),
+                (String) doc.get(PHOTOID),
+                ((List<String>) doc.get(CHANNELIDS)).toArray(new String[0])
         );
     }
 
@@ -38,40 +47,45 @@ public class User {
         return id;
     }
 
-    public void setId(String id) {
+    public User setId(String id) {
         this.id = id;
+        return this;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public User setName(String name) {
         this.name = name;
+        return this;
     }
 
     public String getPwd() {
         return pwd;
     }
 
-    public void setPwd(String pwd) {
+    public User setPwd(String pwd) {
         this.pwd = pwd;
+        return this;
     }
 
     public String getPhotoId() {
         return photoId;
     }
 
-    public void setPhotoId(String photoId) {
+    public User setPhotoId(String photoId) {
         this.photoId = photoId;
+        return this;
     }
 
     public String[] getChannelIds() {
         return channelIds == null ? new String[0] : channelIds;
     }
 
-    public void setChannelIds(String[] channelIds) {
+    public User setChannelIds(String[] channelIds) {
         this.channelIds = channelIds;
+        return this;
     }
 
     @Override
@@ -81,10 +95,10 @@ public class User {
     }
 
     public Document toDocument() {
-        return new Document("_id", id)
-                .append("name", name)
-                .append("pwd", pwd)
-                .append("photoId", photoId)
-                .append("channelIds", Arrays.asList(channelIds));
+        return new Document(ID, id)
+                .append(NAME, name)
+                .append(PWD, pwd)
+                .append(PHOTOID, photoId)
+                .append(CHANNELIDS, Arrays.asList(channelIds));
     }
 }

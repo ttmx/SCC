@@ -6,7 +6,6 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import scc.Env;
-import scc.entities.Channel;
 import scc.entities.User;
 import scc.utils.Hash;
 import scc.utils.Log;
@@ -14,7 +13,8 @@ import scc.utils.Log;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
+
+import static scc.entities.User.*;
 
 @Path("/user")
 public class UserResource {
@@ -29,25 +29,29 @@ public class UserResource {
     @Path("/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public User getUser(@PathParam("id") String id){
-        Document userDoc = mCol.find(new Document("_id", id) ).first();
-        if (userDoc != null) {
-            return User.fromDocument(userDoc);
-        }
-        return null;
+    public User getUser(@PathParam("id") String id) {
+        return getUserById(id)
+                .setPwd(null)
+                .setChannelIds(null);
+    }
+
+    private User getUserById(String id) {
+        Document userDoc = mCol.find(new Document(ID, id)).first();
+        if (userDoc == null)
+            throw new NotFoundException();
+        return User.fromDocument(userDoc);
     }
 
     @Path("/{id}/channels")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public String[] getUserChannels(@PathParam("id") String id) {
-        Document userDoc = mCol.find(new Document("_id", id) ).first();
+        Document userDoc = mCol.find(new Document(ID, id)).first();
         User user;
         if (userDoc != null) {
             user = User.fromDocument(userDoc);
             return user.getChannelIds();
-        }
-        else {
+        } else {
             throw new NotFoundException();
         }
     }
@@ -55,12 +59,12 @@ public class UserResource {
     @Path("/")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createUser(User user){
-        Log.d("UserResource","Creating "+ user.toString());
+    public void createUser(User user) {
+        Log.d("UserResource", "Creating " + user.toString());
 
-        if (mCol.find(new Document("_id",user.getId())).first() == null) {
+        if (mCol.find(new Document(ID, user.getId())).first() == null) {
             insertUser(user);
-        }else{
+        } else {
             throw new WebApplicationException(Response.Status.CONFLICT);
         }
     }
@@ -68,16 +72,27 @@ public class UserResource {
     @Path("/")
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    public void update(User user, @HeaderParam("pass") String password){
-        Document d = mCol.find(new Document("_id",user.getId())).first();
-        if(Hash.of(password).equals(d.get("pwd"))){
+    public void update(User user, @HeaderParam(PWD) String password) {
+        Document d = mCol.find(new Document(ID, user.getId())).first();
+        if (Hash.of(password).equals(d.get(PWD))) {
+
+            Document update = new Document();
+            if (user.getPwd()!= null)
+                update.append(PWD,Hash.of(user.getPwd()));
+            if(user.getName()!=null)
+                update.append(NAME,user.getName());
 
             insertUser(user);
         }
     }
+    private Document a(Document d,String k, String v){
+        if (v!=null)
+            d.append(k,v);
+        return d;
+    }
 
-    private void insertUser(User u){
-        if (u.getPwd()!= null)
+    private void insertUser(User u) {
+        if (u.getPwd() != null)
             u.setPwd(Hash.of(u.getPwd()));
         mCol.insertOne(u.toDocument());
     }
