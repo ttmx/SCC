@@ -34,6 +34,7 @@ public class MessageResource {
 
     @Path("/")
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String createMessage(Message message) {
         Log.d("MessageResource","Creating "+ message.toString());

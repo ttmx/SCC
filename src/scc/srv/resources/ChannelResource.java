@@ -34,6 +34,7 @@ public class ChannelResource {
 
     @Path("/")
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public String createChannel(Channel channel) {
         Log.d("ChannelResource","Creating "+ channel.toString());
