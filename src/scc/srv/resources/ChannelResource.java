@@ -3,6 +3,7 @@ package scc.srv.resources;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
+import org.jboss.resteasy.annotations.Query;
 import scc.entities.Channel;
 import scc.entities.Message;
 import scc.srv.DataAbstractionLayer;
@@ -99,13 +100,14 @@ public class ChannelResource {
     @Path("/{id}/messages")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Object[] getChannelMessages(@PathParam("id") String id) {
-        List<Document> messageDocs = this.data.getMessageCol().find(new Document("channel", id)).into(new ArrayList<>());
+    public Object[] getChannelMessages(@PathParam("id") String id, @QueryParam("st") int start, @QueryParam("len") int length) {
+        List<Document> messageDocs = this.data.getMessageCol().find(new Document("channel", id)).skip(start).limit(length).into(new ArrayList<>());
 
         if (messageDocs != null) {
             Object[] messages = messageDocs.stream().map(e -> Message.fromDocument(e)).toArray();
             return messages;
         }
+
         throw new NotFoundException();
     }
 
