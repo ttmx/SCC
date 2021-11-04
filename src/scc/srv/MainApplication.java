@@ -13,10 +13,12 @@ public class MainApplication extends Application {
     private final Set<Class<?>> resources = new HashSet<Class<?>>();
 
     public MainApplication() {
+        DataAbstractionLayer data = new DataAbstractionLayer();
         resources.add(ControlResource.class);
-        singletons.add(new UserResource());
-        singletons.add(new MessageResource());
-        singletons.add(new MediaResource());
+        singletons.add(new UserResource(data));
+        singletons.add(new MessageResource(data));
+        singletons.add(new MediaResource(data));
+        singletons.add(data);
     }
 
     @Override

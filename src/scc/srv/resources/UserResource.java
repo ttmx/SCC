@@ -1,14 +1,11 @@
 package scc.srv.resources;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import scc.Env;
 import scc.entities.Session;
 import scc.entities.User;
 import scc.entities.UserAuth;
+import scc.srv.DataAbstractionLayer;
 import scc.utils.Hash;
 import scc.utils.Log;
 import scc.utils.Redis;
@@ -24,11 +21,10 @@ import static scc.entities.User.*;
 @Path("/user")
 public class UserResource {
     public static final String DB_NAME = "users";
-    MongoClient mc = new MongoClient(new MongoClientURI(Env.DB_URI));
-    MongoDatabase mdb = mc.getDatabase(Env.DB_NAME);
-    MongoCollection<Document> mCol = mdb.getCollection(DB_NAME);
+    MongoCollection<Document> mCol;
 
-    public UserResource() {
+    public UserResource(DataAbstractionLayer data) {
+        mCol = data.getUserCol();
     }
 
     @Path("/auth")

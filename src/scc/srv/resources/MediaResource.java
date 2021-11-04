@@ -3,8 +3,7 @@ package scc.srv.resources;
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
-import com.azure.storage.blob.BlobContainerClientBuilder;
-import scc.Env;
+import scc.srv.DataAbstractionLayer;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -15,18 +14,15 @@ public class MediaResource {
 
     BlobContainerClient containerClient;
 
-    public MediaResource() {
-        this.containerClient = new BlobContainerClientBuilder()
-                .connectionString(Env.BLOB_CONN_STRING)
-                .containerName("images")
-                .buildClient();
+    public MediaResource(DataAbstractionLayer data) {
+        containerClient = data.getBlobClient();
     }
 
     @Path("/{id}")
     @GET
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public byte[] download(@PathParam("id") String id){
+    public byte[] download(@PathParam("id") String id) {
         // TODO Error handling
         BlobClient blob = containerClient.getBlobClient(id);
 
