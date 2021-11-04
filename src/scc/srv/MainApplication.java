@@ -1,5 +1,6 @@
 package scc.srv;
 
+import scc.srv.resources.ChannelResource;
 import scc.srv.resources.MessageResource;
 import scc.srv.resources.UserResource;
 import scc.srv.resources.MediaResource;
@@ -17,6 +18,7 @@ public class MainApplication extends Application {
         resources.add(ControlResource.class);
         singletons.add(new UserResource(data));
         singletons.add(new MessageResource(data));
+        singletons.add(new ChannelResource(data));
         singletons.add(new MediaResource(data));
         singletons.add(data);
     }

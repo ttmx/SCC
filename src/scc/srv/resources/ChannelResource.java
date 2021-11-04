@@ -15,6 +15,7 @@ public class ChannelResource {
     public static final String DB_NAME = "channels";
     MongoCollection<Document> mCol;
     DataAbstractionLayer data;
+
     public ChannelResource(DataAbstractionLayer data) {
         mCol = data.getChannelCol();
         //TODO MCOL? UNNECESSARY?
