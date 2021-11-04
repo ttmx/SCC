@@ -1,6 +1,7 @@
 package scc.srv.resources;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
 import scc.entities.Session;
 import scc.entities.User;
@@ -50,8 +51,19 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public User getUserEndpoint(@PathParam("id") String id) {
         return getUser(id)
-                .setPwd(null)
-                .setChannelIds(null);
+                .setPwd(null);
+                // TODO SET CHANNEL IDS TO NULL FOR SAFETY, REMOVED FOR TESTING
+                // .setChannelIds(null);
+    }
+
+    @Path("/{id}")
+    @DELETE
+    public void deleteUser(@PathParam("id") String id) {
+        // TODO Authenticate, garbage collect avatar and channels
+
+        DeleteResult result = this.mCol.deleteOne(new Document(ID, id));
+
+        if (result.getDeletedCount() == 0) throw new NotFoundException();
     }
 
     private User getUser(String id) throws NotFoundException {
@@ -90,7 +102,7 @@ public class UserResource {
     @Path("/")
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
-    public void update(User user, @HeaderParam("pwd") String password) {
+    public void updateUser(User user, @HeaderParam("pwd") String password) {
         if (user == null || user.getId() == null) {
             throw new BadRequestException();
         }
