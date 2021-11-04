@@ -71,7 +71,7 @@ public class Channel {
                 (String)doc.get("name"),
                 (String)doc.get("owner"),
                 (boolean)doc.get("publicChannel"),
-                (String[]) ((List<String>)doc.get("members")).toArray()
+                ((List<String>) doc.get("members")).toArray(new String[0])
         );
     }
 
