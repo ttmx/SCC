@@ -3,6 +3,7 @@ package scc.srv.resources;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
+import scc.entities.Channel;
 import scc.entities.Session;
 import scc.entities.User;
 import scc.entities.UserAuth;
@@ -23,9 +24,11 @@ import static scc.entities.User.*;
 public class UserResource {
     public static final String DB_NAME = "users";
     MongoCollection<Document> mCol;
+    DataAbstractionLayer data;
 
     public UserResource(DataAbstractionLayer data) {
         mCol = data.getUserCol();
+        this.data = data;
     }
 
     @Path("/auth")
@@ -96,6 +99,26 @@ public class UserResource {
             mCol.insertOne(user.toDocument());
         } else {
             throw new WebApplicationException(Response.Status.CONFLICT);
+        }
+    }
+
+    @Path("/{id}/subscribe/{channelId}")
+    @POST
+    public void addChannelToUser(@PathParam("id") String id, @PathParam("channelId") String channelId) {
+        // TODO deal with authentication for this to work, this only works for public channels?
+
+        Document channelDoc = this.data.getChannelCol().find(new Document("_id", channelId)).first();
+
+        Channel channel = Channel.fromDocument(channelDoc);
+
+        if (channel.getPublicChannel()) {
+            // Add user to channel
+            this.data.getChannelCol().updateOne(new Document("_id", channelId), new Document("$addToSet" , new Document("members", id)));
+
+            // Add channel to user
+            this.mCol.updateOne(new Document("_id", id), new Document("$addToSet" , new Document("channelIds", channelId)));
+        } else {
+            throw new ForbiddenException();
         }
     }
 
