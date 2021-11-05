@@ -1,7 +1,5 @@
 package scc.srv.resources;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.DeleteResult;
 import org.bson.Document;
 import scc.entities.Channel;
 import scc.entities.Session;
@@ -24,12 +22,11 @@ import static scc.entities.User.*;
 @Path("/user")
 public class UserResource {
     public static final String DB_NAME = "users";
-    MongoCollection<Document> mCol;
     DataAbstractionLayer data;
     public static final String SESSION_COOKIE = "session";
+    Redis redis = Redis.getInstance();
 
     public UserResource(DataAbstractionLayer data) {
-        mCol = data.getUserCol();
         this.data = data;
     }
 
@@ -47,7 +44,7 @@ public class UserResource {
         String uid = UUID.randomUUID().toString();
         NewCookie cookie = new NewCookie(SESSION_COOKIE, uid, "/", null,
                 "sessionid", 3600, false, true);
-        Redis.getInstance().putSession(new Session(uid, ua.getUser()));
+        this.redis.putSession(new Session(uid, ua.getUser()));
         return Response.ok().cookie(cookie).build();
     }
 
@@ -58,7 +55,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkCookie(@CookieParam(SESSION_COOKIE) Cookie s,@PathParam("id") String userId){
         System.out.println(s.getValue());
-        Redis.getInstance().checkCookieUser(s,userId);
+        this.redis.checkCookieUser(s,userId);
         return Response.ok().build();
 
     }
@@ -69,7 +66,7 @@ public class UserResource {
     public User getUserEndpoint(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         User user = getUser(id).setPwd(null);
         try {
-            Redis.getInstance().checkCookieUser(session, id);
+            this.redis.checkCookieUser(session, id);
             return user;
         } catch (NotAuthorizedException e) {
             return user.setChannelIds(null);
@@ -84,14 +81,12 @@ public class UserResource {
     @DELETE
     public void deleteUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         // TODO Authenticate, garbage collect avatar and channels
-        Redis.getInstance().checkCookieUser(session, id);
-        DeleteResult result = this.mCol.deleteOne(new Document(ID, id));
-        //TODO v is this necessary?
-        if (result.getDeletedCount() == 0) throw new NotFoundException();
+        this.redis.checkCookieUser(session, id);
+        this.data.deleteOneDocument(id, new Document(ID, id), DataAbstractionLayer.USER);
     }
 
     private User getUser(String id) throws NotFoundException {
-        Document userDoc = mCol.find(new Document(ID, id)).first();
+        Document userDoc = this.data.getDocument(id, new Document(ID, id), DataAbstractionLayer.USER).first();
         if (userDoc == null)
             throw new NotFoundException();
         return User.fromDocument(userDoc);
@@ -102,7 +97,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String[] getUserChannels(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
-            Redis.getInstance().checkCookieUser(session, id);
+            this.redis.checkCookieUser(session, id);
             User user = getUser(id);
             return user.getChannelIds();
         } catch(WebApplicationException e) {
@@ -121,10 +116,10 @@ public class UserResource {
         }
         Log.d("UserResource", "Creating " + user);
 
-        if (mCol.find(new Document(ID, user.getId())).first() == null) {
+        if (this.data.getDocument(user.getId(),new Document(ID, user.getId()), DataAbstractionLayer.USER).first() == null) {
             user.setChannelIds(new String[0]);
             user.setPwd(Hash.of(user.getPwd()));
-            mCol.insertOne(user.toDocument());
+            this.data.insertOneDocument(user.getId(), user.toDocument(), DataAbstractionLayer.USER);
         } else {
             throw new WebApplicationException(Response.Status.CONFLICT);
         }
@@ -135,8 +130,8 @@ public class UserResource {
     public void addChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         // TODO deal with authentication for this to work, this only works for public channels?
         try {
-            Redis.getInstance().checkCookieUser(session, id);
-            Document channelDoc = this.data.getChannelCol().find(new Document("_id", channelId)).first();
+            this.redis.checkCookieUser(session, id);
+            Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL).first();
 
             if(channelDoc == null) {
                 throw new BadRequestException();
@@ -146,10 +141,10 @@ public class UserResource {
 
             if (channel.getPublicChannel()) {
                 // Add user to channel
-                this.data.getChannelCol().updateOne(new Document("_id", channelId), new Document("$addToSet" , new Document("members", id)));
+                this.data.updateOneDocument(channelId, new Document("_id", channelId), new Document("$addToSet" , new Document("members", id)), DataAbstractionLayer.CHANNEL);
 
                 // Add channel to user
-                this.mCol.updateOne(new Document("_id", id), new Document("$addToSet" , new Document("channelIds", channelId)));
+                this.data.updateOneDocument(id, new Document("_id", id), new Document("$addToSet" , new Document("channelIds", channelId)), DataAbstractionLayer.USER);
             } else {
                 throw new ForbiddenException();
             }
@@ -165,8 +160,8 @@ public class UserResource {
     @DELETE
     public void removeChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         // TODO deal with authentication for this to work, this only works for public channels?
-        Redis.getInstance().checkCookieUser(session, id);
-        Document channelDoc = this.data.getChannelCol().find(new Document("_id", channelId)).first();
+        this.redis.checkCookieUser(session, id);
+        Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL).first();
 
         if(channelDoc == null) {
             throw new BadRequestException();
@@ -175,10 +170,11 @@ public class UserResource {
         Channel channel = Channel.fromDocument(channelDoc);
         if (channel.hasMember(id)) {
             // Remove user from channel
-            this.data.getChannelCol().updateOne(new Document("_id", channelId), new Document("$pull" , new Document("members", id)));
+            this.data.updateOneDocument(channelId, new Document("_id", channelId), new Document("$pull" , new Document("members", id)), DataAbstractionLayer.CHANNEL);
 
             // Remove channel from user
-            this.mCol.updateOne(new Document("_id", id), new Document("$pull" , new Document("channelIds", channelId)));
+            this.data.updateOneDocument(id, new Document("_id", id), new Document("$pull" , new Document("channelIds", channelId)), DataAbstractionLayer.USER);
+
         } else {
             throw new ForbiddenException();
         }
@@ -187,34 +183,27 @@ public class UserResource {
     @Path("/")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateUser(@CookieParam(SESSION_COOKIE) Cookie session, User user, @HeaderParam("pwd") String password) {
-        if (user == null || user.getId() == null) {
+    public void updateUser(@CookieParam(SESSION_COOKIE) Cookie session, User user) {
+        if (user == null) {
             throw new BadRequestException();
         }
 
-        try {
-            Redis.getInstance().checkCookieUser(session, user.getId());
-            Log.d("UserResource", "Creating " + user);
-            Document d = mCol.find(new Document(ID, user.getId())).first();
-            assert d != null;
-            if (Hash.of(password).equals(d.get(PWD))) {
+        String userId = this.redis.getUserfromCookie(session);
+        Log.d("UserResource", "Update " + user);
+        Document userDoc = this.data.getDocument(userId, new Document(ID, userId), DataAbstractionLayer.USER).first();
+        if(userDoc != null) {
 
-                Document update = new Document();
-                if (user.getPwd() != null)
-                    update.append(PWD, Hash.of(user.getPwd()));
-                if (user.getName() != null)
-                    update.append(NAME, user.getName());
-                if (user.getPhotoId() != null)
-                    update.append(PHOTOID, user.getPhotoId());
+            Document update = new Document();
+            if (user.getPwd() != null)
+                update.append(PWD, Hash.of(user.getPwd()));
+            if (user.getName() != null)
+                update.append(NAME, user.getName());
+            if (user.getPhotoId() != null)
+                update.append(PHOTOID, user.getPhotoId());
 
-                mCol.updateOne(new Document(ID, user.getId()), update);
-            }
-        } catch(WebApplicationException e) {
-            throw e;
-        } catch(Exception e) {
-            throw new InternalServerErrorException(e);
-        }
+            this.data.updateOneDocument(userId, new Document(ID, userId), update, DataAbstractionLayer.USER);
 
+        } else throw new NotFoundException();
     }
 
 }

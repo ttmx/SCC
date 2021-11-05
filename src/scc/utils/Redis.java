@@ -76,7 +76,7 @@ public class Redis {
         return new Session(s, username);
     }
 
-    public String getUserfromCookie(Cookie sess) throws CacheException {
+    public String getUserfromCookie(Cookie sess) throws NotAuthorizedException {
         String username = null;
         ObjectMapper om = new ObjectMapper();
         try(Jedis jedis = Redis.getCachePool().getResource()){
