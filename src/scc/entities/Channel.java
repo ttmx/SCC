@@ -53,11 +53,15 @@ public class Channel {
     }
 
     public boolean getPublicChannel() {
-        return publicChannel;
+        return this.publicChannel;
     }
 
     public void setPublicChannel(boolean publicChannel) {
         this.publicChannel = publicChannel;
+    }
+
+    public boolean hasMember(String userId) {
+        return Arrays.stream(this.members).anyMatch(element-> element.equals(userId));
     }
 
     @Override

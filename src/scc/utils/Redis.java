@@ -76,6 +76,19 @@ public class Redis {
         return new Session(s, username);
     }
 
+    public String getUserfromCookie(Cookie sess) throws CacheException {
+        String username = null;
+        ObjectMapper om = new ObjectMapper();
+        try(Jedis jedis = Redis.getCachePool().getResource()){
+            username = om.readValue(jedis.get(SESSION_PATH+sess.getValue()),String.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        if (username == null || username.length() == 0)
+            throw new NotAuthorizedException("No valid session initialized");
+        return username;
+    }
+
 
     public Session checkCookieUser(Cookie sessUidCookie, String userId)
             throws NotAuthorizedException {
