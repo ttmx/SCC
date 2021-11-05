@@ -84,16 +84,10 @@ public class UserResource {
     @DELETE
     public void deleteUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         // TODO Authenticate, garbage collect avatar and channels
-        try {
-            Redis.getInstance().checkCookieUser(session, id);
-            DeleteResult result = this.mCol.deleteOne(new Document(ID, id));
-            //TODO v is this necessary?
-            if (result.getDeletedCount() == 0) throw new NotFoundException();
-        } catch(WebApplicationException e) {
-            throw e;
-        } catch(Exception e) {
-            throw new InternalServerErrorException(e);
-        }
+        Redis.getInstance().checkCookieUser(session, id);
+        DeleteResult result = this.mCol.deleteOne(new Document(ID, id));
+        //TODO v is this necessary?
+        if (result.getDeletedCount() == 0) throw new NotFoundException();
     }
 
     private User getUser(String id) throws NotFoundException {
