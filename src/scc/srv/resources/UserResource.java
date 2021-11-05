@@ -161,6 +161,29 @@ public class UserResource {
 
     }
 
+    @Path("/{id}/unsubscribe/{channelId}")
+    @DELETE
+    public void removeChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
+        // TODO deal with authentication for this to work, this only works for public channels?
+        Redis.getInstance().checkCookieUser(session, id);
+        Document channelDoc = this.data.getChannelCol().find(new Document("_id", channelId)).first();
+
+        if(channelDoc == null) {
+            throw new BadRequestException();
+        }
+
+        Channel channel = Channel.fromDocument(channelDoc);
+        if (channel.hasMember(id)) {
+            // Remove user from channel
+            this.data.getChannelCol().updateOne(new Document("_id", channelId), new Document("$pull" , new Document("members", id)));
+
+            // Remove channel from user
+            this.mCol.updateOne(new Document("_id", id), new Document("$pull" , new Document("channelIds", channelId)));
+        } else {
+            throw new ForbiddenException();
+        }
+    }
+
     @Path("/")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
