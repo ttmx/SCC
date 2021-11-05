@@ -40,4 +40,10 @@ public class ControlResource {
         MongoClient mc = new MongoClient(new MongoClientURI(Env.DB_URI));
         return String.valueOf(mc.getCredential().getPassword());
     }
+    @Path("/redis")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String redis() {
+        return Env.REDIS_HOSTNAME + "\n" + Env.REDIS_KEY+"\n";
+    }
 }

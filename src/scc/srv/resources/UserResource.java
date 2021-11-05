@@ -13,6 +13,7 @@ import scc.utils.Log;
 import scc.utils.Redis;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
@@ -43,10 +44,22 @@ public class UserResource {
             throw new ForbiddenException();
         }
         String uid = UUID.randomUUID().toString();
-        NewCookie cookie = new NewCookie("scc:session", uid, "/", null,
+        NewCookie cookie = new NewCookie("session", uid, "/", null,
                 "sessionid", 3600, false, true);
         Redis.getInstance().putSession(new Session(uid, ua.getUser()));
         return Response.ok().cookie(cookie).build();
+    }
+
+
+
+    @Path("/checkcookie/{id}")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response checkCookie(@CookieParam("session") Cookie s,@PathParam("id") String userId){
+        System.out.println(s.getValue());
+        Redis.getInstance().checkCookieUser(s,userId);
+        return Response.ok().build();
+
     }
 
     @Path("/{id}")

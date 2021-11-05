@@ -2,6 +2,12 @@ package scc.entities;
 
 public class Session {
     String uid;
+    String username;
+
+    public Session(String uid, String username) {
+        this.uid = uid;
+        this.username = username;
+    }
 
     public String getUid() {
         return uid;
@@ -16,12 +22,6 @@ public class Session {
     }
 
     public void setUsername(String username) {
-        this.username = username;
-    }
-
-    String username;
-    public Session(String uid,String username){
-        this.uid = uid;
         this.username = username;
     }
 }
