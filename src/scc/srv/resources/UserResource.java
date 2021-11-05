@@ -65,21 +65,34 @@ public class UserResource {
     @Path("/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public User getUserEndpoint(@PathParam("id") String id) {
-        return getUser(id)
-                .setPwd(null);
-                // TODO SET CHANNEL IDS TO NULL FOR SAFETY, REMOVED FOR TESTING
-                // .setChannelIds(null);
+    public User getUserEndpoint(@CookieParam("scc:session") Cookie session, @PathParam("id") String id) {
+        User user = getUser(id).setPwd(null);
+        try {
+            Redis.getInstance().checkCookieUser(session, id);
+            return user;
+        } catch (NotAuthorizedException e) {
+            return user.setChannelIds(null);
+        } catch(WebApplicationException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new InternalServerErrorException(e);
+        }
     }
 
     @Path("/{id}")
     @DELETE
-    public void deleteUser(@PathParam("id") String id) {
+    public void deleteUser(@CookieParam("scc:session") Cookie session, @PathParam("id") String id) {
         // TODO Authenticate, garbage collect avatar and channels
-
-        DeleteResult result = this.mCol.deleteOne(new Document(ID, id));
-
-        if (result.getDeletedCount() == 0) throw new NotFoundException();
+        try {
+            Redis.getInstance().checkCookieUser(session, id);
+            DeleteResult result = this.mCol.deleteOne(new Document(ID, id));
+            //TODO v is this necessary?
+            if (result.getDeletedCount() == 0) throw new NotFoundException();
+        } catch(WebApplicationException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new InternalServerErrorException(e);
+        }
     }
 
     private User getUser(String id) throws NotFoundException {
@@ -92,9 +105,16 @@ public class UserResource {
     @Path("/{id}/channels")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String[] getUserChannels(@PathParam("id") String id) {
-        User user = getUser(id);
-        return user.getChannelIds();
+    public String[] getUserChannels(@CookieParam("scc:session") Cookie session, @PathParam("id") String id) {
+        try {
+            Redis.getInstance().checkCookieUser(session, id);
+            User user = getUser(id);
+            return user.getChannelIds();
+        } catch(WebApplicationException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new InternalServerErrorException(e);
+        }
     }
 
     @Path("/")
@@ -117,46 +137,66 @@ public class UserResource {
 
     @Path("/{id}/subscribe/{channelId}")
     @POST
-    public void addChannelToUser(@PathParam("id") String id, @PathParam("channelId") String channelId) {
+    public void addChannelToUser(@CookieParam("scc:session") Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         // TODO deal with authentication for this to work, this only works for public channels?
+        try {
+            Redis.getInstance().checkCookieUser(session, id);
+            Document channelDoc = this.data.getChannelCol().find(new Document("_id", channelId)).first();
 
-        Document channelDoc = this.data.getChannelCol().find(new Document("_id", channelId)).first();
+            if(channelDoc == null) {
+                throw new BadRequestException();
+            }
 
-        Channel channel = Channel.fromDocument(channelDoc);
+            Channel channel = Channel.fromDocument(channelDoc);
 
-        if (channel.getPublicChannel()) {
-            // Add user to channel
-            this.data.getChannelCol().updateOne(new Document("_id", channelId), new Document("$addToSet" , new Document("members", id)));
+            if (channel.getPublicChannel()) {
+                // Add user to channel
+                this.data.getChannelCol().updateOne(new Document("_id", channelId), new Document("$addToSet" , new Document("members", id)));
 
-            // Add channel to user
-            this.mCol.updateOne(new Document("_id", id), new Document("$addToSet" , new Document("channelIds", channelId)));
-        } else {
-            throw new ForbiddenException();
+                // Add channel to user
+                this.mCol.updateOne(new Document("_id", id), new Document("$addToSet" , new Document("channelIds", channelId)));
+            } else {
+                throw new ForbiddenException();
+            }
+        } catch(WebApplicationException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new InternalServerErrorException(e);
         }
+
     }
 
     @Path("/")
     @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    public void updateUser(User user, @HeaderParam("pwd") String password) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void updateUser(@CookieParam("scc:session") Cookie session, User user, @HeaderParam("pwd") String password) {
         if (user == null || user.getId() == null) {
             throw new BadRequestException();
         }
-        Log.d("UserResource", "Creating " + user);
-        Document d = mCol.find(new Document(ID, user.getId())).first();
-        assert d != null;
-        if (Hash.of(password).equals(d.get(PWD))) {
 
-            Document update = new Document();
-            if (user.getPwd() != null)
-                update.append(PWD, Hash.of(user.getPwd()));
-            if (user.getName() != null)
-                update.append(NAME, user.getName());
-            if (user.getPhotoId() != null)
-                update.append(PHOTOID, user.getPhotoId());
+        try {
+            Redis.getInstance().checkCookieUser(session, user.getId());
+            Log.d("UserResource", "Creating " + user);
+            Document d = mCol.find(new Document(ID, user.getId())).first();
+            assert d != null;
+            if (Hash.of(password).equals(d.get(PWD))) {
 
-            mCol.updateOne(new Document(ID, user.getId()), update);
+                Document update = new Document();
+                if (user.getPwd() != null)
+                    update.append(PWD, Hash.of(user.getPwd()));
+                if (user.getName() != null)
+                    update.append(NAME, user.getName());
+                if (user.getPhotoId() != null)
+                    update.append(PHOTOID, user.getPhotoId());
+
+                mCol.updateOne(new Document(ID, user.getId()), update);
+            }
+        } catch(WebApplicationException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new InternalServerErrorException(e);
         }
+
     }
 
 }
