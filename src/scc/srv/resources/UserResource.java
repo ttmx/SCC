@@ -192,7 +192,6 @@ public class UserResource {
         Log.d("UserResource", "Update " + user);
         Document userDoc = this.data.getDocument(userId, new Document(ID, userId), DataAbstractionLayer.USER).first();
         if(userDoc != null) {
-
             Document update = new Document();
             if (user.getPwd() != null)
                 update.append(PWD, Hash.of(user.getPwd()));
@@ -201,7 +200,7 @@ public class UserResource {
             if (user.getPhotoId() != null)
                 update.append(PHOTOID, user.getPhotoId());
 
-            this.data.updateOneDocument(userId, new Document(ID, userId), update, DataAbstractionLayer.USER);
+            this.data.updateOneDocument(userId, new Document(ID, userId), new Document("$set", update), DataAbstractionLayer.USER);
 
         } else throw new NotFoundException();
     }
