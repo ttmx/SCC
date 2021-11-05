@@ -29,10 +29,10 @@ public class MessageResource {
     public Message getMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE).first();
+            Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
-                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL).first();
+                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL);
                 if(channelDoc != null && Channel.fromDocument(channelDoc).hasMember(userId)) {
                     return m;
                 }
@@ -48,13 +48,13 @@ public class MessageResource {
     @Path("/{id}")
     @DELETE
     public void deleteMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
-        // TODO Authenticate, garbage collect
+        // TODO garbage collect
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE).first();
+            Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
-                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL).first();
+                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL);
                 if(channelDoc != null){
                     Channel c = Channel.fromDocument(channelDoc);
                     if( c.hasMember(userId) && (c.getOwner().equals(userId)) || m.getUser().equals(userId)) {
@@ -77,11 +77,10 @@ public class MessageResource {
     public String createMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, Message message) {
         Log.d("MessageResource", "Creating " + message.toString());
 
-        // TODO Error handling, can channel not exist?
         try {
             this.redis.checkCookieUser(session, message.getUser());
-            Document channelDoc = this.data.getDocument(message.getChannel(), new Document("_id", message.getChannel()), DataAbstractionLayer.CHANNEL).first();
-            if(channelDoc != null && (message.getReplyTo().equals("") || this.data.getDocument(message.getReplyTo(), new Document("_id", message.getReplyTo()), DataAbstractionLayer.MESSAGE).first() != null)) {
+            Document channelDoc = this.data.getDocument(message.getChannel(), new Document("_id", message.getChannel()), DataAbstractionLayer.CHANNEL);
+            if(channelDoc != null && (message.getReplyTo().equals("") || this.data.getDocument(message.getReplyTo(), new Document("_id", message.getReplyTo()), DataAbstractionLayer.MESSAGE) != null)) {
                 UUID uuid = UUID.randomUUID();
                 message.setId(uuid.toString());
 

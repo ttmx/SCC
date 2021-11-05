@@ -30,7 +30,7 @@ public class ChannelResource {
     public Channel getChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL).first();
+            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {
@@ -54,7 +54,7 @@ public class ChannelResource {
     @DELETE
     public void deleteChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         // TODO Authenticate, garbage collect users and messages
-        Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL).first();
+        Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
         if(channelDoc != null) {
             try {
                 this.redis.checkCookieUser(session, Channel.fromDocument(channelDoc).getOwner());
@@ -99,7 +99,7 @@ public class ChannelResource {
     @Path("/{id}/add/{userId}")
     @POST
     public void addUserToChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("userId") String userId) {
-        Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL).first();
+        Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
         try {
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
@@ -125,7 +125,7 @@ public class ChannelResource {
     public void removeUserFromChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("userId") String userId) {
         try {
             String userAccessingId = this.redis.getUserfromCookie(session);
-            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL).first();
+            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 if(userAccessingId.equals(Channel.fromDocument(channelDoc).getOwner())) {
                     // Remove user from channel
@@ -150,14 +150,14 @@ public class ChannelResource {
     public Object[] getChannelMessages(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id, @QueryParam("st") int start, @QueryParam("len") int length) {
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL).first();
+            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if(channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {
-                    List<Document> messageDocs = this.data.getDocument(id, new Document("channel", id), DataAbstractionLayer.MESSAGE).skip(start).limit(length).into(new ArrayList<>());
-                    if (messageDocs != null) { //TODO maybe this should be a !empty check
-                        return messageDocs.stream().map(Message::fromDocument).toArray();
-                    }
+                    List<Document> messageDocs = this.data.getMessageCol().find(new Document("channel", id)).skip(start).limit(length).into(new ArrayList<>());
+
+                    return messageDocs.stream().map(Message::fromDocument).toArray();
+
                 } else throw new NotAuthorizedException("Cannot access messages from a channel one doesn't belong to.");
             }
         } catch(WebApplicationException e) {
@@ -174,7 +174,7 @@ public class ChannelResource {
     public String[] getChannelMembers(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL).first();
+            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if(channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {

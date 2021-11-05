@@ -48,8 +48,6 @@ public class UserResource {
         return Response.ok().cookie(cookie).build();
     }
 
-
-
     @Path("/checkcookie/{id}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -86,7 +84,7 @@ public class UserResource {
     }
 
     private User getUser(String id) throws NotFoundException {
-        Document userDoc = this.data.getDocument(id, new Document(ID, id), DataAbstractionLayer.USER).first();
+        Document userDoc = this.data.getDocument(id, new Document(ID, id), DataAbstractionLayer.USER);
         if (userDoc == null)
             throw new NotFoundException();
         return User.fromDocument(userDoc);
@@ -116,7 +114,7 @@ public class UserResource {
         }
         Log.d("UserResource", "Creating " + user);
 
-        if (this.data.getDocument(user.getId(),new Document(ID, user.getId()), DataAbstractionLayer.USER).first() == null) {
+        if (this.data.getDocument(user.getId(),new Document(ID, user.getId()), DataAbstractionLayer.USER) == null) {
             user.setChannelIds(new String[0]);
             user.setPwd(Hash.of(user.getPwd()));
             this.data.insertOneDocument(user.getId(), user.toDocument(), DataAbstractionLayer.USER);
@@ -131,7 +129,7 @@ public class UserResource {
         // TODO deal with authentication for this to work, this only works for public channels?
         try {
             this.redis.checkCookieUser(session, id);
-            Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL).first();
+            Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
 
             if(channelDoc == null) {
                 throw new BadRequestException();
@@ -153,15 +151,13 @@ public class UserResource {
         } catch(Exception e) {
             throw new InternalServerErrorException(e);
         }
-
     }
 
     @Path("/{id}/unsubscribe/{channelId}")
     @DELETE
-    public void removeChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
-        // TODO deal with authentication for this to work, this only works for public channels?
+    public void removeChannelFromUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         this.redis.checkCookieUser(session, id);
-        Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL).first();
+        Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
 
         if(channelDoc == null) {
             throw new BadRequestException();
@@ -190,7 +186,7 @@ public class UserResource {
 
         String userId = this.redis.getUserfromCookie(session);
         Log.d("UserResource", "Update " + user);
-        Document userDoc = this.data.getDocument(userId, new Document(ID, userId), DataAbstractionLayer.USER).first();
+        Document userDoc = this.data.getDocument(userId, new Document(ID, userId), DataAbstractionLayer.USER);
         if(userDoc != null) {
             Document update = new Document();
             if (user.getPwd() != null)

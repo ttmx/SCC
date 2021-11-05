@@ -2,6 +2,9 @@ package scc.srv;
 
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -9,11 +12,14 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import redis.clients.jedis.Jedis;
 import scc.Env;
 import scc.srv.resources.ChannelResource;
 import scc.srv.resources.MediaResource;
 import scc.srv.resources.MessageResource;
 import scc.srv.resources.UserResource;
+import scc.utils.Log;
+import scc.utils.Redis;
 
 import javax.inject.Singleton;
 
@@ -30,6 +36,7 @@ public class DataAbstractionLayer {
     MongoCollection<Document> messageCol = mdb.getCollection(MessageResource.DB_NAME);
     MongoCollection<Document> channelCol = mdb.getCollection(ChannelResource.DB_NAME);
     MongoCollection<Document> mediaCol = mdb.getCollection(MediaResource.DB_NAME);
+    ObjectMapper mapper = new ObjectMapper();
 
     BlobContainerClient containerClient = new BlobContainerClientBuilder()
             .connectionString(Env.BLOB_CONN_STRING)
@@ -69,8 +76,50 @@ public class DataAbstractionLayer {
         return containerClient;
     }
 
-    public FindIterable<Document> getDocument (String id, Document filter, char collection) {
-        return map(collection).find(filter);
+    private void writeToCache(Document doc, String key) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Log.d("Writing to cache", doc.toString());
+            jedis.set(key, this.mapper.writeValueAsString(doc));
+
+            Log.d("Wrote to cache", this.mapper.readValue(jedis.get(key), Document.class).toString());
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Document readFromCache(String key) {
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            String res = jedis.get(key);
+            if (res != null && !res.equals("")) {
+                Log.d("Found value in cache", res);
+                return this.mapper.readValue(res, Document.class);
+            } else {
+                Log.d("No value found in cache", "");
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Document getDocument (String id, Document filter, char collection) {
+        // Check in cache
+        String key = collection+id;
+
+        Document doc = this.readFromCache(key);
+
+        if (doc != null) {
+            return doc;
+        }
+
+        assert map(collection) != null;
+
+        doc = map(collection).find(filter).first();
+
+        if (doc != null)
+            this.writeToCache(doc, key);
+
+        return doc;
     }
 
     public void updateOneDocument(String id, Document filter, Document update, char collection) {

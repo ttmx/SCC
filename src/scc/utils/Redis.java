@@ -67,7 +67,7 @@ public class Redis {
         ObjectMapper om = new ObjectMapper();
         try(Jedis jedis = Redis.getCachePool().getResource()){
 
-            username = om.readValue(jedis.get(SESSION_PATH+s),String.class);
+            username = om.readValue(jedis.get(SESSION_PATH+s), String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
