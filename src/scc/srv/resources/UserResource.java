@@ -26,6 +26,7 @@ public class UserResource {
     public static final String DB_NAME = "users";
     MongoCollection<Document> mCol;
     DataAbstractionLayer data;
+    public static final String SESSION_COOKIE = "session";
 
     public UserResource(DataAbstractionLayer data) {
         mCol = data.getUserCol();
@@ -44,7 +45,7 @@ public class UserResource {
             throw new ForbiddenException();
         }
         String uid = UUID.randomUUID().toString();
-        NewCookie cookie = new NewCookie("session", uid, "/", null,
+        NewCookie cookie = new NewCookie(SESSION_COOKIE, uid, "/", null,
                 "sessionid", 3600, false, true);
         Redis.getInstance().putSession(new Session(uid, ua.getUser()));
         return Response.ok().cookie(cookie).build();
@@ -55,7 +56,7 @@ public class UserResource {
     @Path("/checkcookie/{id}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkCookie(@CookieParam("session") Cookie s,@PathParam("id") String userId){
+    public Response checkCookie(@CookieParam(SESSION_COOKIE) Cookie s,@PathParam("id") String userId){
         System.out.println(s.getValue());
         Redis.getInstance().checkCookieUser(s,userId);
         return Response.ok().build();
@@ -65,7 +66,7 @@ public class UserResource {
     @Path("/{id}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public User getUserEndpoint(@CookieParam("scc:session") Cookie session, @PathParam("id") String id) {
+    public User getUserEndpoint(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         User user = getUser(id).setPwd(null);
         try {
             Redis.getInstance().checkCookieUser(session, id);
@@ -81,7 +82,7 @@ public class UserResource {
 
     @Path("/{id}")
     @DELETE
-    public void deleteUser(@CookieParam("scc:session") Cookie session, @PathParam("id") String id) {
+    public void deleteUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         // TODO Authenticate, garbage collect avatar and channels
         try {
             Redis.getInstance().checkCookieUser(session, id);
@@ -105,7 +106,7 @@ public class UserResource {
     @Path("/{id}/channels")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public String[] getUserChannels(@CookieParam("scc:session") Cookie session, @PathParam("id") String id) {
+    public String[] getUserChannels(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             Redis.getInstance().checkCookieUser(session, id);
             User user = getUser(id);
@@ -137,7 +138,7 @@ public class UserResource {
 
     @Path("/{id}/subscribe/{channelId}")
     @POST
-    public void addChannelToUser(@CookieParam("scc:session") Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
+    public void addChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         // TODO deal with authentication for this to work, this only works for public channels?
         try {
             Redis.getInstance().checkCookieUser(session, id);
@@ -169,7 +170,7 @@ public class UserResource {
     @Path("/")
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    public void updateUser(@CookieParam("scc:session") Cookie session, User user, @HeaderParam("pwd") String password) {
+    public void updateUser(@CookieParam(SESSION_COOKIE) Cookie session, User user, @HeaderParam("pwd") String password) {
         if (user == null || user.getId() == null) {
             throw new BadRequestException();
         }

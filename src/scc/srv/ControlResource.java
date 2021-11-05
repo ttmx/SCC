@@ -23,7 +23,7 @@ public class ControlResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
-        return "v: 0005";
+        return "v: 0006";
     }
     @Path("/vargaming")
     @GET
