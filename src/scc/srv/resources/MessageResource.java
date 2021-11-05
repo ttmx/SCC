@@ -1,7 +1,6 @@
 package scc.srv.resources;
 
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.result.DeleteResult;
+
 import org.bson.Document;
 import scc.entities.Channel;
 import scc.entities.Message;
@@ -14,18 +13,13 @@ import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.MediaType;
 import java.util.UUID;
 
-import static scc.entities.User.ID;
-
-
 @Path("/messages")
 public class MessageResource {
     public static final String DB_NAME = "messages";
-    MongoCollection<Document> mCol;
     DataAbstractionLayer data;
     Redis redis = Redis.getInstance();
 
     public MessageResource(DataAbstractionLayer data) {
-        mCol = data.getMessageCol();
         this.data = data;
     }
 
@@ -35,10 +29,10 @@ public class MessageResource {
     public Message getMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document messageDoc = mCol.find(new Document("_id", id)).first();
+            Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE).first();
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
-                Document channelDoc = this.data.getChannelCol().find(new Document("_id", m.getChannel())).first();
+                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL).first();
                 if(channelDoc != null && Channel.fromDocument(channelDoc).hasMember(userId)) {
                     return m;
                 }
@@ -57,14 +51,14 @@ public class MessageResource {
         // TODO Authenticate, garbage collect
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document messageDoc = mCol.find(new Document("_id", id)).first();
+            Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE).first();
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
-                Document channelDoc = this.data.getChannelCol().find(new Document("_id", m.getChannel())).first();
+                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL).first();
                 if(channelDoc != null){
                     Channel c = Channel.fromDocument(channelDoc);
                     if( c.hasMember(userId) && (c.getOwner().equals(userId)) || m.getUser().equals(userId)) {
-                        this.mCol.deleteOne(new Document("_id", id));
+                        this.data.deleteOneDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
                     } else throw new NotAuthorizedException("Cannot delete this message");
                 }
             } else throw new NotFoundException();
@@ -86,8 +80,8 @@ public class MessageResource {
         // TODO Error handling, can channel not exist?
         try {
             this.redis.checkCookieUser(session, message.getUser());
-            Document channelDoc = this.data.getChannelCol().find(new Document("_id", message.getChannel())).first();
-            if(channelDoc != null && (message.getReplyTo().equals("") || mCol.find(new Document("_id", message.getReplyTo())).first() != null)) {
+            Document channelDoc = this.data.getDocument(message.getChannel(), new Document("_id", message.getChannel()), DataAbstractionLayer.CHANNEL).first();
+            if(channelDoc != null && (message.getReplyTo().equals("") || this.data.getDocument(message.getReplyTo(), new Document("_id", message.getReplyTo()), DataAbstractionLayer.MESSAGE).first() != null)) {
                 UUID uuid = UUID.randomUUID();
                 message.setId(uuid.toString());
 
@@ -104,6 +98,6 @@ public class MessageResource {
     }
 
     private void insertMessage(Message m) {
-        mCol.insertOne(m.toDocument());
+        this.data.insertOneDocument(m.getId(), m.toDocument(), DataAbstractionLayer.MESSAGE);
     }
 }
