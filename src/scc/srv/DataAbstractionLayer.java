@@ -9,6 +9,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import scc.Env;
 import scc.srv.resources.ChannelResource;
+import scc.srv.resources.MediaResource;
 import scc.srv.resources.MessageResource;
 import scc.srv.resources.UserResource;
 
@@ -22,20 +23,22 @@ public class DataAbstractionLayer {
     MongoCollection<Document> userCol = mdb.getCollection(UserResource.DB_NAME);
     MongoCollection<Document> messageCol = mdb.getCollection(MessageResource.DB_NAME);
     MongoCollection<Document> channelCol = mdb.getCollection(ChannelResource.DB_NAME);
+    MongoCollection<Document> mediaCol = mdb.getCollection(MediaResource.DB_NAME);
 
     BlobContainerClient containerClient = new BlobContainerClientBuilder()
-                .connectionString(Env.BLOB_CONN_STRING)
-                .containerName("images")
-                .buildClient();
+            .connectionString(Env.BLOB_CONN_STRING)
+            .containerName("images")
+            .buildClient();
 
     public DataAbstractionLayer() {
 
     }
-    public MongoCollection<Document> getUserCol () {
-       return userCol;
+
+    public MongoCollection<Document> getUserCol() {
+        return userCol;
     }
 
-    public MongoCollection<Document> getMessageCol () {
+    public MongoCollection<Document> getMessageCol() {
         return messageCol;
     }
 
@@ -43,7 +46,11 @@ public class DataAbstractionLayer {
         return channelCol;
     }
 
-    public BlobContainerClient getBlobClient () {
+    public MongoCollection<Document> getMediaCol() {
+        return mediaCol;
+    }
+
+    public BlobContainerClient getBlobClient() {
         return containerClient;
     }
 

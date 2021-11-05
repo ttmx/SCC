@@ -33,13 +33,6 @@ public class ControlResource {
         return e.keySet().stream().reduce("",(a,b) ->b+"="+e.get(b)+"\n"+a);
     }
 
-    @Path("/mdb")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String mdb() {
-        MongoClient mc = new MongoClient(new MongoClientURI(Env.DB_URI));
-        return String.valueOf(mc.getCredential().getPassword());
-    }
     @Path("/redis")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
