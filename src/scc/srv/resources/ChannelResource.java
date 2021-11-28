@@ -59,7 +59,7 @@ public class ChannelResource {
             try {
                 this.redis.checkCookieUser(session, Channel.fromDocument(channelDoc).getOwner());
                 this.data.deleteOneDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
-
+                return;
             } catch (WebApplicationException e) {
                 throw e;
             } catch (Exception e) {

@@ -3,14 +3,13 @@ package scc.srv;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import org.bson.Document;
 import redis.clients.jedis.Jedis;
 import scc.Env;
@@ -128,10 +127,11 @@ public class DataAbstractionLayer {
     }
 
     public void updateOneDocument(String id, Document filter, Document update, char collection) {
-        map(collection).updateOne(filter, update);
-
-        // TODO add new one to cache
+        assert map(collection) != null;
+        Document d = map(collection).findOneAndUpdate(filter, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
         this.removeFromCache(this.getKey(collection, id));
+        //TODO
+        this.writeToCache(d, this.getKey(collection, id));
     }
 
     public void deleteOneDocument(String id, Document filter, char collection) {
@@ -143,7 +143,7 @@ public class DataAbstractionLayer {
     public void insertOneDocument(String id, Document insert, char collection) {
         map(collection).insertOne(insert);
 
-        this.writeToCache(insert, id);
+        this.writeToCache(insert, this.getKey(collection, id));
     }
 
     private String getKey(char collection, String id) {
