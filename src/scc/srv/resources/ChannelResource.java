@@ -88,7 +88,6 @@ public class ChannelResource {
             this.data.updateOneDocument(owner, new Document("_id", owner), new Document("$addToSet" , new Document("channelIds", channel.getId())), DataAbstractionLayer.USER);
 
             return channel.getId();
-
         } catch(WebApplicationException e) {
             throw e;
         } catch(Exception e) {

@@ -44,7 +44,6 @@ public class DataAbstractionLayer {
             .buildClient();
 
     public DataAbstractionLayer() {
-
     }
 
     private MongoCollection<Document> map(char type) {
@@ -87,6 +86,12 @@ public class DataAbstractionLayer {
         }
     }
 
+    private void removeFromCache(String key) {
+        Jedis jedis = Redis.getCachePool().getResource();
+        Log.d("Removing from cache", key);
+        jedis.del(key);
+    }
+
     private Document readFromCache(String key) {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             String res = jedis.get(key);
@@ -102,9 +107,9 @@ public class DataAbstractionLayer {
         return null;
     }
 
-    public Document getDocument (String id, Document filter, char collection) {
+    public Document getDocument(String id, Document filter, char collection) {
         // Check in cache
-        String key = collection+id;
+        String key = this.getKey(collection, id);
 
         Document doc = this.readFromCache(key);
 
@@ -124,14 +129,25 @@ public class DataAbstractionLayer {
 
     public void updateOneDocument(String id, Document filter, Document update, char collection) {
         map(collection).updateOne(filter, update);
+
+        // TODO add new one to cache
+        this.removeFromCache(this.getKey(collection, id));
     }
 
     public void deleteOneDocument(String id, Document filter, char collection) {
         map(collection).deleteOne(filter);
+
+        this.removeFromCache(this.getKey(collection, id));
     }
 
     public void insertOneDocument(String id, Document insert, char collection) {
         map(collection).insertOne(insert);
+
+        this.writeToCache(insert, id);
+    }
+
+    private String getKey(char collection, String id) {
+        return collection + id;
     }
 
 }
