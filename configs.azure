@@ -1,12 +1,23 @@
 SUFFIX="bst"
 RESOURCE_GROUP="scc-backend-rg-$SUFFIX"
 APP_NAME="scc-backend-$SUFFIX" # found in the POM
+AZ_FUN_APP_NAME="scc55697funwesteurope"
 
 #BLOB STORAGE
 DEPLOY_BLOB="Y" # Y or N
 STORAGE_ACCOUNT_NAME="sccstorage$SUFFIX"
 CONTAINER_NAME="images"
 STORAGE_ACCOUNT_CONNECTION_STRING_VAR_NAME="storageAccountConnectionString"
+
+
+#BLOB STORAGE REPLICA
+DEPLOY_REPLICA="Y" # Y or N
+STORAGE_ACCOUNT_REPLICA_NAME="sccstoragereplica$SUFFIX"
+STORAGE_ACCOUNT_REPLICA_CONNECTION_STRING_VAR_NAME="storageAccountReplicaConnectionString"
+
+# FUNCTIONS
+DEPLOY_AZ_FUN="Y" # Y or N
+AZ_FUN_DIR="functions"
 
 
 #COSMOS DB
