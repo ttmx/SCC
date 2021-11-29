@@ -28,6 +28,7 @@ public class DataAbstractionLayer {
     public static final char CHANNEL = 'C';
     public static final char USER = 'U';
     public static final char MESSAGE = 'M';
+    public boolean useCache = true;
 
     MongoClient mc = new MongoClient(new MongoClientURI(Env.DB_URI));
     MongoDatabase mdb = mc.getDatabase(Env.DB_NAME);
@@ -43,6 +44,10 @@ public class DataAbstractionLayer {
             .buildClient();
 
     public DataAbstractionLayer() {
+
+    }
+    public DataAbstractionLayer(boolean cache) {
+        useCache = cache;
     }
 
     private MongoCollection<Document> map(char type) {
@@ -108,42 +113,51 @@ public class DataAbstractionLayer {
 
     public Document getDocument(String id, Document filter, char collection) {
         // Check in cache
-        String key = this.getKey(collection, id);
+        if(useCache) {
+            String key = this.getKey(collection, id);
 
-        Document doc = this.readFromCache(key);
+            Document doc = this.readFromCache(key);
 
-        if (doc != null) {
+            if (doc != null) {
+                return doc;
+            }
+
+            assert map(collection) != null;
+
+            doc = map(collection).find(filter).first();
+
+            if (doc != null)
+                this.writeToCache(doc, key);
+
             return doc;
+        } else {
+            return map(collection).find(filter).first();
         }
-
-        assert map(collection) != null;
-
-        doc = map(collection).find(filter).first();
-
-        if (doc != null)
-            this.writeToCache(doc, key);
-
-        return doc;
     }
 
     public void updateOneDocument(String id, Document filter, Document update, char collection) {
         assert map(collection) != null;
-        Document d = map(collection).findOneAndUpdate(filter, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
-        this.removeFromCache(this.getKey(collection, id));
-        //TODO
-        this.writeToCache(d, this.getKey(collection, id));
+        if(useCache) {
+            Document d = map(collection).findOneAndUpdate(filter, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+            this.removeFromCache(this.getKey(collection, id));
+            this.writeToCache(d, this.getKey(collection, id));
+        } else {
+            map(collection).updateOne(filter, update);
+        }
     }
 
     public void deleteOneDocument(String id, Document filter, char collection) {
         map(collection).deleteOne(filter);
-
-        this.removeFromCache(this.getKey(collection, id));
+        if(useCache) {
+            this.removeFromCache(this.getKey(collection, id));
+        }
     }
 
     public void insertOneDocument(String id, Document insert, char collection) {
         map(collection).insertOne(insert);
-
-        this.writeToCache(insert, this.getKey(collection, id));
+        if(useCache) {
+            this.writeToCache(insert, this.getKey(collection, id));
+        }
     }
 
     private String getKey(char collection, String id) {
