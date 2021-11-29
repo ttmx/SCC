@@ -19,10 +19,6 @@ public class BlobStoreFunction
 								byte[] content,
 								@BindingName("name") String blobname, 
 								final ExecutionContext context) {
-		System.out.println(">>>>>>>>>>>>> BLOB_TRIGGER");
-		System.out.println("Blobname: " + blobname);
-		System.out.println("Content size: " + (content == null ? "0" : content.length));
-		
 		BlobContainerClient containerClient = new BlobContainerClientBuilder()
 		    .connectionString(System.getenv("storageAccountReplicaConnectionString"))
 		    .containerName("images")
