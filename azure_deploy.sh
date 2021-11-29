@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. configs.azure
+. ./configs.azure
 
 
 generate_sql_cosmos(){
@@ -194,39 +194,19 @@ redis_deploy(){
 }
 
 
-az_fun_deploy(){
-    cd ./$AZ_FUN_DIR
-    rm -r target
-    mvn compile package azure-functions:deploy
-
-    #Add the env vars you wish to your Azure functions app following this template:
-    #az functionapp config appsettings set --name "$AZ_FUN_APP_NAME" --resource-group "$RESOURCE_GROUP" --settings "ENV_NAME=ENV_VALUE"
-
-    #az functionapp config appsettings set --name "$AZ_FUN_APP_NAME" --resource-group "$RESOURCE_GROUP" --settings "mongoConnectionString=$(az cosmosdb keys list --name "$COSMOS_DB_ACCOUNT_NAME" --resource-group "$RESOURCE_GROUP" --type connection-strings | python3 -c "import sys, json; print(json.load(sys.stdin)['connectionStrings'][0]['connectionString'])")"
-    #az functionapp config appsettings set --name "$AZ_FUN_APP_NAME" --resource-group "$RESOURCE_GROUP" --settings "$DB_NAME_VAR_NAME=$DATABASE_NAME"
-    cd ..
-}
-
-
 az group create -l westeurope -n "$RESOURCE_GROUP"
 
 #Deploy Web-app to Azure
 mvn compile package azure-webapp:deploy
 
 if [ "$DEPLOY_BLOB" = "Y" ]; then
-    blob_deploy &
+    blob_deploy
 fi
 
 if [ "$DEPLOY_DB" = "Y" ]; then
-    db_deploy &
+    db_deploy
 fi
 
 if [ "$DEPLOY_CACHE" = "Y" ]; then
-    redis_deploy &
-fi
-
-wait
-
-if [ "$DEPLOY_AZ_FUN" = "Y" ]; then
-    az_fun_deploy
+    redis_deploy
 fi

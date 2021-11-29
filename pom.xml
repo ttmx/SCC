@@ -149,8 +149,8 @@
                             </resource>
                         </resources>
                     </deployment>
-                    <resourceGroup>scc-backend-rg-bst</resourceGroup>
-                    <appName>scc-backend-bst</appName>
+                    <resourceGroup>scc-backend-rg-55697</resourceGroup>
+                    <appName>scc-backend-55697</appName>
                 </configuration>
             </plugin>
         </plugins>

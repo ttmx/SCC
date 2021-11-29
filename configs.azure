@@ -27,9 +27,3 @@ DEPLOY_CACHE="Y" # Y or N
 REDIS_NAME="sccredis-$SUFFIX"
 REDIS_HOSTNAME_VAR_NAME="REDIS_HOSTNAME"
 REDIS_KEY_VAR_NAME="REDIS_KEY"
-
-
-#AZ_Functions
-DEPLOY_AZ_FUN="Y" # Y or N
-AZ_FUN_APP_NAME="scc-backend-fun-bst" #found in pom.xml of AZ_fun
-AZ_FUN_DIR="SCC_Functions" #Assuming a dir inside the main folder with the azure functions code, where its pom is located
