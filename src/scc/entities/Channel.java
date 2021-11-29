@@ -12,16 +12,18 @@ public class Channel {
     private String owner;
     private boolean publicChannel;
     private String[] members;
+    private boolean deleted;
 
     public Channel() {
     }
 
-    public Channel(String id, String name, String owner, boolean publicChannel, String[] members) {
+    public Channel(String id, String name, String owner, boolean publicChannel, String[] members,boolean deleted) {
         this.id = id;
         this.name = name;
         this.owner = owner;
         this.publicChannel = publicChannel;
         this.members = members;
+		this.deleted = deleted;
     }
 
     public String getName() {
@@ -60,13 +62,23 @@ public class Channel {
         this.publicChannel = publicChannel;
     }
 
+    public boolean getDeleted() {
+		return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+
     public boolean hasMember(String userId) {
         return Arrays.stream(this.members).anyMatch(element-> element.equals(userId));
     }
 
     @Override
     public String toString() {
-        return "Channel [id=" + this.id + ", name=" + this.name + ", owner=" + this.owner + ", publicChannel=" + this.publicChannel + ", members=" + Arrays.toString(this.members) + "]";
+		return "Channel [id=" + this.id + ", name=" + this.name + ", owner=" + this.owner + ", publicChannel="
+				+ this.publicChannel + ", members=" + Arrays.toString(this.members) + ", deleted=" + this.deleted + "]";
     }
 
     static public Channel fromDocument(Document doc) {
@@ -75,7 +87,8 @@ public class Channel {
                 (String)doc.get("name"),
                 (String)doc.get("owner"),
                 (boolean)doc.get("publicChannel"),
-                ((List<String>) doc.get("members")).toArray(new String[0])
+                ((List<String>) doc.get("members")).toArray(new String[0]),
+				(boolean)doc.get("deleted")
         );
     }
 
@@ -84,7 +97,8 @@ public class Channel {
                 .append("name", name)
                 .append("owner", owner)
                 .append("publicChannel", publicChannel)
-                .append("members", Arrays.asList(members));
+                .append("members", Arrays.asList(members))
+				.append("deleted", deleted);
     }
 
 }

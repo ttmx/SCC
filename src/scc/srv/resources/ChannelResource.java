@@ -30,7 +30,7 @@ public class ChannelResource {
     public Channel getChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             String userId = this.redis.getUserfromCookie(session);
-            Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getDocument(id, new Document("_id", id).append("deleted", false), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {
@@ -42,9 +42,9 @@ public class ChannelResource {
                     throw new NotAuthorizedException("Cannot access channels without a valid session.");
                 }
             }
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
         throw new NotFoundException();
@@ -55,10 +55,13 @@ public class ChannelResource {
     public void deleteChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         // TODO Authenticate, garbage collect users and messages
         Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
-        if(channelDoc != null) {
+        if (channelDoc != null) {
             try {
                 this.redis.checkCookieUser(session, Channel.fromDocument(channelDoc).getOwner());
-                this.data.deleteOneDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
+                this.data.updateOneDocument(
+                        id, new Document("_id", id),
+                        new Document("deleted", true),
+                        DataAbstractionLayer.CHANNEL);
                 return;
             } catch (WebApplicationException e) {
                 throw e;
@@ -84,13 +87,13 @@ public class ChannelResource {
             UUID uuid = UUID.randomUUID();
             channel.setId(uuid.toString());
             this.insertChannel(channel);
-            this.data.updateOneDocument(channel.getId(), new Document("_id", channel.getId()), new Document("$addToSet" , new Document("members", owner)), DataAbstractionLayer.CHANNEL);
-            this.data.updateOneDocument(owner, new Document("_id", owner), new Document("$addToSet" , new Document("channelIds", channel.getId())), DataAbstractionLayer.USER);
+            this.data.updateOneDocument(channel.getId(), new Document("_id", channel.getId()), new Document("$addToSet", new Document("members", owner)), DataAbstractionLayer.CHANNEL);
+            this.data.updateOneDocument(owner, new Document("_id", owner), new Document("$addToSet", new Document("channelIds", channel.getId())), DataAbstractionLayer.USER);
 
             return channel.getId();
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
     }
@@ -104,16 +107,16 @@ public class ChannelResource {
                 Channel c = Channel.fromDocument(channelDoc);
                 this.redis.checkCookieUser(session, c.getOwner());
                 // Add user to channel
-                this.data.updateOneDocument(id, new Document("_id", id), new Document("$addToSet" , new Document("members", userId)), DataAbstractionLayer.CHANNEL);
+                this.data.updateOneDocument(id, new Document("_id", id), new Document("$addToSet", new Document("members", userId)), DataAbstractionLayer.CHANNEL);
 
                 // Add channel to user
-                this.data.updateOneDocument(userId, new Document("_id", userId), new Document("$addToSet" , new Document("channelIds", id)), DataAbstractionLayer.USER);
+                this.data.updateOneDocument(userId, new Document("_id", userId), new Document("$addToSet", new Document("channelIds", id)), DataAbstractionLayer.USER);
             } else {
                 throw new BadRequestException();
             }
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
 
@@ -126,7 +129,7 @@ public class ChannelResource {
             String userAccessingId = this.redis.getUserfromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
-                if(userAccessingId.equals(Channel.fromDocument(channelDoc).getOwner())) {
+                if (userAccessingId.equals(Channel.fromDocument(channelDoc).getOwner())) {
                     // Remove user from channel
                     this.data.updateOneDocument(id, new Document("_id", id), new Document("$pull", new Document("members", userId)), DataAbstractionLayer.CHANNEL);
 
@@ -136,9 +139,9 @@ public class ChannelResource {
             } else {
                 throw new BadRequestException();
             }
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
     }
@@ -150,7 +153,7 @@ public class ChannelResource {
         try {
             String userId = this.redis.getUserfromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
-            if(channelDoc != null) {
+            if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {
                     List<Document> messageDocs = this.data.getMessageCol().find(new Document("channel", id)).skip(start).limit(length).into(new ArrayList<>());
@@ -159,9 +162,9 @@ public class ChannelResource {
 
                 } else throw new NotAuthorizedException("Cannot access messages from a channel one doesn't belong to.");
             }
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
         throw new NotFoundException();
@@ -174,15 +177,15 @@ public class ChannelResource {
         try {
             String userId = this.redis.getUserfromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
-            if(channelDoc != null) {
+            if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {
                     return c.getMembers();
                 } else throw new NotAuthorizedException("Cannot access messages from a channel one doesn't belong to.");
             }
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
         throw new NotFoundException();

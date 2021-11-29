@@ -12,10 +12,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>11</java.version>
-        <functionAppName>scc55697funwesteurope</functionAppName>
+        <functionAppName>sccbstfunwesteurope</functionAppName>
         <functionAppRegion>westeurope</functionAppRegion>
         <functionPricingTier>B1</functionPricingTier>
-        <functionResourceGroup>scc-backend-rg-55697</functionResourceGroup>
+        <functionResourceGroup>scc-backend-rg-bst</functionResourceGroup>
     </properties>
 
     <dependencies>
@@ -29,6 +29,12 @@
 			<artifactId>azure-storage-blob</artifactId>
 			<version>12.14.0</version>
 		</dependency>
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver</artifactId>
+            <version>3.12.10</version>
+        </dependency>
 <dependency>
 	<groupId>com.azure</groupId>
 	<artifactId>azure-cosmos</artifactId>

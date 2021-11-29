@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source configs.azure
+. ./configs.azure
 
 
 generate_sql_cosmos(){
