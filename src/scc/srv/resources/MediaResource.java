@@ -3,6 +3,7 @@ package scc.srv.resources;
 import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.models.BlobStorageException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
@@ -46,21 +47,13 @@ public class MediaResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public String upload(byte[] data) {
-
         String hash = Hash.of(data);
-        UpdateOptions options = new UpdateOptions().upsert(true);
-        UpdateResult ret = mCol.updateOne(
-                new Document(Media.ID, hash),
-                new Document()
-                        .append("$set", new Document(Media.ID, hash))
-                        .append("$inc", new Document(Media.REFERENCES, 1)),
-                options
-        );
 
-        if (ret.getMatchedCount() != 0) {
+        try {
             BlobClient blob = containerClient.getBlobClient(hash);
             blob.upload(BinaryData.fromBytes(data));
-        }
+        } catch (BlobStorageException ignored) {}
+
         return hash;
     }
 

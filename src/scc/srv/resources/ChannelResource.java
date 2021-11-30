@@ -76,7 +76,7 @@ public class ChannelResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String createChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, Channel channel) {
+    public Channel createChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, Channel channel) {
         Log.d("ChannelResource", "Creating " + channel.toString());
 
         // TODO Error handling
@@ -90,8 +90,8 @@ public class ChannelResource {
             this.data.updateOneDocument(channel.getId(), new Document("_id", channel.getId()), new Document("$addToSet", new Document("members", owner)), DataAbstractionLayer.CHANNEL);
             this.data.updateOneDocument(owner, new Document("_id", owner), new Document("$addToSet", new Document("channelIds", channel.getId())), DataAbstractionLayer.USER);
 
-            return channel.getId();
-        } catch (WebApplicationException e) {
+            return channel;
+        } catch(WebApplicationException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException(e);

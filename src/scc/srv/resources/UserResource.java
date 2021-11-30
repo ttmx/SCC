@@ -1,10 +1,7 @@
 package scc.srv.resources;
 
 import org.bson.Document;
-import scc.entities.Channel;
-import scc.entities.Session;
-import scc.entities.User;
-import scc.entities.UserAuth;
+import scc.entities.*;
 import scc.srv.DataAbstractionLayer;
 import scc.utils.Hash;
 import scc.utils.Log;
@@ -71,6 +68,7 @@ public class UserResource {
         } catch(WebApplicationException e) {
             throw e;
         } catch(Exception e) {
+            e.printStackTrace();
             throw new InternalServerErrorException(e);
         }
     }
@@ -108,7 +106,8 @@ public class UserResource {
     @Path("/")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public void createUser(User user) {
+    @Produces(MediaType.APPLICATION_JSON)
+    public User createUser(User user) {
         if (user == null || user.getId() == null || user.getPwd() == null) {
             throw new BadRequestException();
         }
@@ -116,8 +115,11 @@ public class UserResource {
 
         if (this.data.getDocument(user.getId(),new Document(ID, user.getId()), DataAbstractionLayer.USER) == null) {
             user.setChannelIds(new String[0]);
+            String pwd = user.getPwd();
             user.setPwd(Hash.of(user.getPwd()));
             this.data.insertOneDocument(user.getId(), user.toDocument(), DataAbstractionLayer.USER);
+
+            return user.setPwd(pwd);
         } else {
             throw new WebApplicationException(Response.Status.CONFLICT);
         }

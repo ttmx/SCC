@@ -99,19 +99,19 @@ public class MessageResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public String createMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, Message message) {
+    public Message createMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, Message message) {
         Log.d("MessageResource", "Creating " + message.toString());
 
         try {
             this.redis.checkCookieUser(session, message.getUser());
             Document channelDoc = this.data.getDocument(message.getChannel(), new Document("_id", message.getChannel()), DataAbstractionLayer.CHANNEL);
-            if (channelDoc != null && (message.getReplyTo().equals("") || this.data.getDocument(message.getReplyTo(), new Document("_id", message.getReplyTo()), DataAbstractionLayer.MESSAGE) != null)) {
+            if (channelDoc != null && (message.getReplyTo() == null || message.getReplyTo().equals("") || this.data.getDocument(message.getReplyTo(), new Document("_id", message.getReplyTo()), DataAbstractionLayer.MESSAGE) != null)) {
                 UUID uuid = UUID.randomUUID();
                 message.setId(uuid.toString());
 
                 this.insertMessage(message);
 
-                return message.getId();
+                return message;
             }
         } catch (WebApplicationException e) {
             throw e;
