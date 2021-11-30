@@ -189,7 +189,6 @@ blob_replica_deploy(){
     #Create "images" container
     az storage container create -n $CONTAINER_NAME --account-name $STORAGE_ACCOUNT_REPLICA_NAME --public-access blob
 
-    #az functionapp config appsettings set --name $APP_NAME --resource-group $RESOURCE_GROUP --settings "$STORAGE_ACCOUNT_REPLICA_CONNECTION_STRING_VAR_NAME=$(az storage account show-connection-string -g $RESOURCE_GROUP -n $STORAGE_ACCOUNT_REPLICA_NAME | python3 -c "import sys, json; print(json.load(sys.stdin)['connectionString'])")"
 }
 
 db_deploy(){
