@@ -131,7 +131,7 @@ public class UserResource {
         // TODO deal with authentication for this to work, this only works for public channels?
         try {
             this.redis.checkCookieUser(session, id);
-            Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getChannel(channelId); //this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
 
             if(channelDoc == null) {
                 throw new BadRequestException();
@@ -159,7 +159,7 @@ public class UserResource {
     @DELETE
     public void removeChannelFromUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         this.redis.checkCookieUser(session, id);
-        Document channelDoc = this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
+        Document channelDoc = this.data.getChannel(channelId); //this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
 
         if(channelDoc == null) {
             throw new BadRequestException();

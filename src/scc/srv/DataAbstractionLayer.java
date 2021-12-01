@@ -13,6 +13,7 @@ import com.mongodb.client.model.ReturnDocument;
 import org.bson.Document;
 import redis.clients.jedis.Jedis;
 import scc.Env;
+import scc.entities.Channel;
 import scc.srv.resources.ChannelResource;
 import scc.srv.resources.MediaResource;
 import scc.srv.resources.MessageResource;
@@ -114,9 +115,14 @@ public class DataAbstractionLayer {
         return null;
     }
 
+    public Document getChannel(String channelId) {
+        Document doc = this.getDocument(channelId, new Document("_id", channelId).append(Channel.DELETED, false), CHANNEL);
+        return doc == null || ((boolean) doc.get(Channel.DELETED)) ? null : doc;
+    }
+
     public Document getDocument(String id, Document filter, char collection) {
         // Check in cache
-        if(useCache) {
+        if (useCache) {
             String key = this.getKey(collection, id);
 
             Document doc = this.readFromCache(key);

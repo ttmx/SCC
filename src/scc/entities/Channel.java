@@ -91,7 +91,7 @@ public class Channel {
                 (String)doc.get("owner"),
                 (boolean)doc.get("publicChannel"),
                 ((List<String>) doc.get("members")).toArray(new String[0]),
-				(boolean)doc.get(DELETED)
+				(boolean) doc.get(DELETED)
         );
     }
 
