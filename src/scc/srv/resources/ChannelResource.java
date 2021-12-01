@@ -29,7 +29,7 @@ public class ChannelResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Channel getChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
-            String userId = this.redis.getUserfromCookie(session);
+            String userId = this.redis.getUserFromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id).append("deleted", false), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
@@ -124,7 +124,7 @@ public class ChannelResource {
     @DELETE
     public void removeUserFromChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("userId") String userId) {
         try {
-            String userAccessingId = this.redis.getUserfromCookie(session);
+            String userAccessingId = this.redis.getUserFromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 if (userAccessingId.equals(Channel.fromDocument(channelDoc).getOwner())) {
@@ -149,7 +149,7 @@ public class ChannelResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Object[] getChannelMessages(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id, @QueryParam("st") int start, @QueryParam("len") int length) {
         try {
-            String userId = this.redis.getUserfromCookie(session);
+            String userId = this.redis.getUserFromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
@@ -173,7 +173,7 @@ public class ChannelResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String[] getChannelMembers(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
-            String userId = this.redis.getUserfromCookie(session);
+            String userId = this.redis.getUserFromCookie(session);
             Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);

@@ -7,15 +7,17 @@ import com.azure.search.documents.SearchDocument;
 import com.azure.search.documents.models.SearchOptions;
 import com.azure.search.documents.util.SearchPagedIterable;
 import com.azure.search.documents.util.SearchPagedResponse;
+import scc.Env;
 import scc.entities.Message;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class Search {
-    private static final String SEARCH_SERVICE_QUERY_KEY = "0DD571837247A93FA1B8052078C23CE7";
-    private static final String SEARCH_SERVICE_URL = "https://scc55697.search.windows.net/";
+    private static final String SEARCH_SERVICE_QUERY_KEY = Env.SEARCH_KEY;
+    private static final String SEARCH_SERVICE_URL = Env.SEARCH_URL;
     private static final String SEARCH_SERVICE_INDEX_NAME = "cosmosdb-index";
 
     private final SearchClient searchClient;
@@ -34,6 +36,8 @@ public class Search {
                     .setSelect("doc_id", "user", "text", "channel", "replyTo", "imageId").setSearchFields("text").setTop(15);
 
             SearchPagedIterable searchPagedIterable = this.searchClient.search(text, options, null);
+
+            Log.d("Cognitive Search found results", String.valueOf(searchPagedIterable.getTotalCount()));
 
             List<Message> messages = new ArrayList<>(Math.toIntExact(searchPagedIterable.getTotalCount()));
 

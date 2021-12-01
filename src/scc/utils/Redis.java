@@ -10,7 +10,6 @@ import scc.entities.exceptions.CacheException;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Cookie;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -73,11 +72,11 @@ public class Redis {
         ObjectMapper om = new ObjectMapper();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             // TODO if cookie expires but user still sends it
-            String a = jedis.get(SESSION_PATH + s);
-            if (a == null) {
+            String res = jedis.get(SESSION_PATH + s);
+            if (res == null) {
                 throw new CacheException();
             }
-            username = om.readValue(jedis.get(SESSION_PATH + s), String.class);
+            username = om.readValue(res, String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -86,11 +85,13 @@ public class Redis {
         return new Session(s, username);
     }
 
-    public String getUserfromCookie(Cookie sess) throws NotAuthorizedException {
+    public String getUserFromCookie(Cookie sess) throws NotAuthorizedException {
         String username = null;
         ObjectMapper om = new ObjectMapper();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            username = om.readValue(jedis.get(SESSION_PATH + sess.getValue()), String.class);
+            String res = jedis.get(SESSION_PATH + sess.getValue());
+            if (res == null) throw new NotAuthorizedException("No valid session initialized");
+            username = om.readValue(res, String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -98,7 +99,6 @@ public class Redis {
             throw new NotAuthorizedException("No valid session initialized");
         return username;
     }
-
 
     public Session checkCookieUser(Cookie sessUidCookie, String userId)
             throws NotAuthorizedException {
@@ -125,7 +125,6 @@ public class Redis {
     }
 
     public void addToTrendingList(String chanId) {
-        ObjectMapper mapper = new ObjectMapper();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             jedis.lpush(TRENDING, chanId);
             jedis.ltrim(TRENDING, 0, 100);
@@ -141,7 +140,7 @@ public class Redis {
                     .collect(Collectors.groupingBy(w -> w, Collectors.counting()))
                     .entrySet()
                     .stream()
-                    .sorted(Comparator.comparingLong(Map.Entry::getValue))
+                    .sorted((a,b) -> Long.compare(b.getValue(), a.getValue()))
                     .map(Map.Entry::getKey)
                     .limit(3)
                     .collect(Collectors.toList());

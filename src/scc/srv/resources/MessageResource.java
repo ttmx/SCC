@@ -31,7 +31,7 @@ public class MessageResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Message getMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
-            String userId = this.redis.getUserfromCookie(session);
+            String userId = this.redis.getUserFromCookie(session);
             Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
@@ -53,7 +53,7 @@ public class MessageResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Object[] searchMessages(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("channel") String channel, @QueryParam("text") String text) {
         try {
-            String userId = this.redis.getUserfromCookie(session);
+            String userId = this.redis.getUserFromCookie(session);
             Document channelDoc = this.data.getDocument(channel, new Document("_id", channel), DataAbstractionLayer.CHANNEL);
 
             if (channelDoc != null) {
@@ -76,7 +76,7 @@ public class MessageResource {
     public void deleteMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         // TODO garbage collect
         try {
-            String userId = this.redis.getUserfromCookie(session);
+            String userId = this.redis.getUserFromCookie(session);
             Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
@@ -125,7 +125,7 @@ public class MessageResource {
     private void insertMessage(Message m) {
         //Database access not needed to be blocking
         data.threadPool.execute(() -> {
-            Document channelDoc = this.data.getDocument(m.getId(), new Document("_id", m.getId()).append("deleted", false), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()).append("deleted", false), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.getPublicChannel()) {
