@@ -186,7 +186,7 @@ public class UserResource {
             throw new BadRequestException();
         }
 
-        String userId = this.redis.getUserfromCookie(session);
+        String userId = this.redis.getUserFromCookie(session);
         Log.d("UserResource", "Update " + user);
         Document userDoc = this.data.getDocument(userId, new Document(ID, userId), DataAbstractionLayer.USER);
         if(userDoc != null) {

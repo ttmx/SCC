@@ -23,20 +23,20 @@ public class ControlResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
-        return "v: 0006";
-    }
-    @Path("/vargaming")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String var() {
-        var e = System.getenv();
-        return e.keySet().stream().reduce("",(a,b) ->b+"="+e.get(b)+"\n"+a);
+        return "v: 0030";
     }
 
     @Path("/redis")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String redis() {
-        return Env.REDIS_HOSTNAME + "\n" + Env.REDIS_KEY+"\n";
+        return Env.REDIS_HOSTNAME + "\n" + Env.REDIS_KEY + "\n";
+    }
+
+    @Path("/search")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String search() {
+        return Env.SEARCH_URL + "\n" + Env.SEARCH_KEY + "\n";
     }
 }
