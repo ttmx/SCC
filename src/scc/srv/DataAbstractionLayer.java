@@ -83,8 +83,6 @@ public class DataAbstractionLayer {
         try (Jedis jedis = Redis.getCachePool().getResource()) {
             Log.d("Writing to cache", doc.toString());
             jedis.set(key, this.mapper.writeValueAsString(doc));
-
-            Log.d("Wrote to cache", this.mapper.readValue(jedis.get(key), Document.class).toString());
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
