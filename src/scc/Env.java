@@ -6,4 +6,6 @@ public class Env {
     static public final String DB_NAME = System.getenv("DB_NAME");
     static public final String REDIS_KEY = System.getenv("REDIS_KEY");
     static public final String REDIS_HOSTNAME = System.getenv("REDIS_HOSTNAME");
+    static public final String SEARCH_URL = System.getenv("SEARCH_URL");
+    static public final String SEARCH_KEY = System.getenv("SEARCH_KEY");
 }
