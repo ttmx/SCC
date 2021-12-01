@@ -53,7 +53,6 @@ public class ChannelResource {
     @Path("/{id}")
     @DELETE
     public void deleteChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
-        // TODO Authenticate, garbage collect users and messages
         Document channelDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.CHANNEL);
         if (channelDoc != null) {
             try {
@@ -79,7 +78,6 @@ public class ChannelResource {
     public Channel createChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, Channel channel) {
         Log.d("ChannelResource", "Creating " + channel.toString());
 
-        // TODO Error handling
         try {
             String owner = channel.getOwner();
             this.redis.checkCookieUser(session, owner);

@@ -91,9 +91,10 @@ public class DataAbstractionLayer {
     }
 
     private void removeFromCache(String key) {
-        Jedis jedis = Redis.getCachePool().getResource();
-        Log.d("Removing from cache", key);
-        jedis.del(key);
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            Log.d("Removing from cache", key);
+            jedis.del(key);
+        }
     }
 
     private Document readFromCache(String key) {

@@ -65,8 +65,12 @@ public class Redis {
     public Session getSession(String s) throws CacheException {
         String username = null;
         ObjectMapper om = new ObjectMapper();
-        try(Jedis jedis = Redis.getCachePool().getResource()){
-
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            // TODO if cookie expires but user still sends it
+            String a = jedis.get(SESSION_PATH + s);
+            if (a == null) {
+                throw new CacheException();
+            }
             username = om.readValue(jedis.get(SESSION_PATH+s), String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -79,7 +83,7 @@ public class Redis {
     public String getUserfromCookie(Cookie sess) throws NotAuthorizedException {
         String username = null;
         ObjectMapper om = new ObjectMapper();
-        try(Jedis jedis = Redis.getCachePool().getResource()){
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
             username = om.readValue(jedis.get(SESSION_PATH+sess.getValue()),String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
@@ -107,8 +111,10 @@ public class Redis {
 
         }
 
-        Redis.getCachePool().getResource()
-                .expire(s.getUid(), COOKIE_EXPIRE);
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.expire(s.getUid(), COOKIE_EXPIRE);
+        }
+
         return s;
     }
 }
