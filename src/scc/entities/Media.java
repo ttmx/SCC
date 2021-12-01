@@ -31,10 +31,10 @@ public class Media {
         this.references = references;
     }
 
-    public Document toDocument(){
+    public Document toDocument() {
         return new Document()
-                .append(ID,mediaId)
-                .append(REFERENCES,references);
+                .append(ID, mediaId)
+                .append(REFERENCES, references);
 
     }
 

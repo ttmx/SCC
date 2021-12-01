@@ -4,7 +4,7 @@ public class UserAuth {
     String user;
     String pwd;
 
-    public UserAuth(){
+    public UserAuth() {
 
     }
 
@@ -24,7 +24,7 @@ public class UserAuth {
         this.pwd = pwd;
     }
 
-    public boolean isValid(){
+    public boolean isValid() {
         return user != null && pwd != null;
     }
 

@@ -1,7 +1,5 @@
 package scc.srv;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import scc.Env;
 
 import javax.ws.rs.GET;

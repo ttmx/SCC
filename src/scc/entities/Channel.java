@@ -19,13 +19,13 @@ public class Channel {
     public Channel() {
     }
 
-    public Channel(String id, String name, String owner, boolean publicChannel, String[] members,boolean deleted) {
+    public Channel(String id, String name, String owner, boolean publicChannel, String[] members, boolean deleted) {
         this.id = id;
         this.name = name;
         this.owner = owner;
         this.publicChannel = publicChannel;
         this.members = members;
-		this.softDeleted = deleted;
+        this.softDeleted = deleted;
     }
 
     public String getName() {
@@ -44,13 +44,17 @@ public class Channel {
         this.id = id;
     }
 
-    public String getOwner() { return this.owner; }
+    public String getOwner() {
+        return this.owner;
+    }
 
     public void setOwner(String owner) {
         this.owner = owner;
     }
 
-    public String[] getMembers() { return this.members; }
+    public String[] getMembers() {
+        return this.members;
+    }
 
     public void setMembers(String[] members) {
         this.members = members;
@@ -65,7 +69,7 @@ public class Channel {
     }
 
     public boolean getSoftDeleted() {
-		return softDeleted;
+        return softDeleted;
     }
 
     public void setSoftDeleted(boolean softDeleted) {
@@ -79,19 +83,19 @@ public class Channel {
 
     @Override
     public String toString() {
-		return "Channel [id=" + this.id + ", name=" + this.name + ", owner=" + this.owner + ", publicChannel="
-				+ this.publicChannel + ", members=" + Arrays.toString(this.members) + ", softDeleted=" + this.softDeleted + "]";
+        return "Channel [id=" + this.id + ", name=" + this.name + ", owner=" + this.owner + ", publicChannel="
+                + this.publicChannel + ", members=" + Arrays.toString(this.members) + ", softDeleted=" + this.softDeleted + "]";
     }
 
     static public Channel fromDocument(Document doc) {
         System.out.println(doc);
-        return new Channel (
-                (String)doc.get("_id"),
-                (String)doc.get("name"),
-                (String)doc.get("owner"),
-                (boolean)doc.get("publicChannel"),
+        return new Channel(
+                (String) doc.get("_id"),
+                (String) doc.get("name"),
+                (String) doc.get("owner"),
+                (boolean) doc.get("publicChannel"),
                 ((List<String>) doc.get("members")).toArray(new String[0]),
-				(boolean)doc.get(DELETED)
+                (boolean) doc.get(DELETED)
         );
     }
 
@@ -101,7 +105,7 @@ public class Channel {
                 .append("owner", owner)
                 .append("publicChannel", publicChannel)
                 .append("members", Arrays.asList(members))
-				.append(DELETED, softDeleted);
+                .append(DELETED, softDeleted);
     }
 
 }

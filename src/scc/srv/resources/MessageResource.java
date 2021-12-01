@@ -35,7 +35,7 @@ public class MessageResource {
             Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
-                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL);
+                Document channelDoc = this.data.getChannel(m.getChannel());
                 if (channelDoc != null && Channel.fromDocument(channelDoc).hasMember(userId)) {
                     return m;
                 }
@@ -54,7 +54,7 @@ public class MessageResource {
     public Object[] searchMessages(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("channel") String channel, @QueryParam("text") String text) {
         try {
             String userId = this.redis.getUserFromCookie(session);
-            Document channelDoc = this.data.getDocument(channel, new Document("_id", channel), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getChannel(channel);
 
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
@@ -74,13 +74,12 @@ public class MessageResource {
     @Path("/{id}")
     @DELETE
     public void deleteMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
-        // TODO garbage collect
         try {
             String userId = this.redis.getUserFromCookie(session);
             Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);
             if (messageDoc != null) {
                 Message m = Message.fromDocument(messageDoc);
-                Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()), DataAbstractionLayer.CHANNEL);
+                Document channelDoc = this.data.getChannel(m.getChannel());
                 if (channelDoc != null) {
                     Channel c = Channel.fromDocument(channelDoc);
                     if (c.hasMember(userId) && (c.getOwner().equals(userId)) || m.getUser().equals(userId)) {
@@ -105,7 +104,7 @@ public class MessageResource {
 
         try {
             this.redis.checkCookieUser(session, message.getUser());
-            Document channelDoc = this.data.getDocument(message.getChannel(), new Document("_id", message.getChannel()), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getChannel(message.getChannel());
             if (channelDoc != null && (message.getReplyTo() == null || message.getReplyTo().equals("") || this.data.getDocument(message.getReplyTo(), new Document("_id", message.getReplyTo()), DataAbstractionLayer.MESSAGE) != null)) {
                 UUID uuid = UUID.randomUUID();
                 message.setId(uuid.toString());
@@ -123,9 +122,8 @@ public class MessageResource {
     }
 
     private void insertMessage(Message m) {
-        //Database access not needed to be blocking
         data.threadPool.execute(() -> {
-            Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()).append(Channel.DELETED, false), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getChannel(m.getChannel());
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.getPublicChannel()) {
