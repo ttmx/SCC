@@ -71,7 +71,7 @@ public class Redis {
         String username = null;
         ObjectMapper om = new ObjectMapper();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            // TODO if cookie expires but user still sends it
+
             String res = jedis.get(SESSION_PATH + s);
             if (res == null) {
                 throw new CacheException();
@@ -86,6 +86,7 @@ public class Redis {
     }
 
     public String getUserFromCookie(Cookie sess) throws NotAuthorizedException {
+        if (sess == null) throw new NotAuthorizedException("No valid session initialized");
         String username = null;
         ObjectMapper om = new ObjectMapper();
         try (Jedis jedis = Redis.getCachePool().getResource()) {

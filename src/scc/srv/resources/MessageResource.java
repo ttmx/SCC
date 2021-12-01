@@ -125,7 +125,7 @@ public class MessageResource {
     private void insertMessage(Message m) {
         //Database access not needed to be blocking
         data.threadPool.execute(() -> {
-            Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()).append("deleted", false), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getDocument(m.getChannel(), new Document("_id", m.getChannel()).append(Channel.DELETED, false), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.getPublicChannel()) {

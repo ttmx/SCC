@@ -50,7 +50,7 @@ public class UserResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkCookie(@CookieParam(SESSION_COOKIE) Cookie s,@PathParam("id") String userId){
         System.out.println(s.getValue());
-        this.redis.checkCookieUser(s,userId);
+        this.redis.checkCookieUser(s, userId);
         return Response.ok().build();
 
     }

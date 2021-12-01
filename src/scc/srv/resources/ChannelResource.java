@@ -17,6 +17,7 @@ import java.util.UUID;
 @Path("/channel")
 public class ChannelResource {
     public static final String DB_NAME = "channels";
+
     DataAbstractionLayer data;
     Redis redis = Redis.getInstance();
 
@@ -30,7 +31,7 @@ public class ChannelResource {
     public Channel getChannel(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
         try {
             String userId = this.redis.getUserFromCookie(session);
-            Document channelDoc = this.data.getDocument(id, new Document("_id", id).append("deleted", false), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getDocument(id, new Document("_id", id).append(Channel.DELETED, false), DataAbstractionLayer.CHANNEL);
             if (channelDoc != null) {
                 Channel c = Channel.fromDocument(channelDoc);
                 if (c.hasMember(userId)) {
@@ -58,13 +59,15 @@ public class ChannelResource {
             try {
                 this.redis.checkCookieUser(session, Channel.fromDocument(channelDoc).getOwner());
                 this.data.updateOneDocument(
-                        id, new Document("_id", id),
-                        new Document("deleted", true),
+                        id,
+                        new Document("_id", id),
+                        new Document("$set", new Document(Channel.DELETED, true)),
                         DataAbstractionLayer.CHANNEL);
                 return;
             } catch (WebApplicationException e) {
                 throw e;
             } catch (Exception e) {
+                e.printStackTrace();
                 throw new InternalServerErrorException(e);
             }
         }

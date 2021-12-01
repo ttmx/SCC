@@ -7,12 +7,14 @@ import java.util.List;
 
 public class Channel {
 
+    public static final String DELETED = "softDeleted";
+
     private String id;
     private String name;
     private String owner;
     private boolean publicChannel;
     private String[] members;
-    private boolean deleted;
+    private boolean softDeleted;
 
     public Channel() {
     }
@@ -23,7 +25,7 @@ public class Channel {
         this.owner = owner;
         this.publicChannel = publicChannel;
         this.members = members;
-		this.deleted = deleted;
+		this.softDeleted = deleted;
     }
 
     public String getName() {
@@ -62,12 +64,12 @@ public class Channel {
         this.publicChannel = publicChannel;
     }
 
-    public boolean getDeleted() {
-		return deleted;
+    public boolean getSoftDeleted() {
+		return softDeleted;
     }
 
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
+    public void setSoftDeleted(boolean softDeleted) {
+        this.softDeleted = softDeleted;
     }
 
 
@@ -78,17 +80,18 @@ public class Channel {
     @Override
     public String toString() {
 		return "Channel [id=" + this.id + ", name=" + this.name + ", owner=" + this.owner + ", publicChannel="
-				+ this.publicChannel + ", members=" + Arrays.toString(this.members) + ", deleted=" + this.deleted + "]";
+				+ this.publicChannel + ", members=" + Arrays.toString(this.members) + ", softDeleted=" + this.softDeleted + "]";
     }
 
     static public Channel fromDocument(Document doc) {
+        System.out.println(doc);
         return new Channel (
                 (String)doc.get("_id"),
                 (String)doc.get("name"),
                 (String)doc.get("owner"),
                 (boolean)doc.get("publicChannel"),
                 ((List<String>) doc.get("members")).toArray(new String[0]),
-				(boolean)doc.get("deleted")
+				(boolean)doc.get(DELETED)
         );
     }
 
@@ -98,7 +101,7 @@ public class Channel {
                 .append("owner", owner)
                 .append("publicChannel", publicChannel)
                 .append("members", Arrays.asList(members))
-				.append("deleted", deleted);
+				.append(DELETED, softDeleted);
     }
 
 }

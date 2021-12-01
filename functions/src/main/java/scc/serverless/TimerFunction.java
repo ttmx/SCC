@@ -36,7 +36,7 @@ public class TimerFunction {
 
 
 
-        FindIterable<Document> channels = channelCol.find(new Document("deleted", true));
+        FindIterable<Document> channels = channelCol.find(new Document("softDeleted", true));
         for (Document channel : channels) {
             messageCol.deleteMany(new Document("channel", channel.get("_id")));
             channelCol.deleteOne(channel);
