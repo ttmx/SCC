@@ -1,0 +1,71 @@
+config:
+  target: 'https://scc-backend-55697.azurewebsites.net/rest'
+  #target: 'http://localhost:8080/rest'
+  http:
+    timeout: 80
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+     metricsProcessEndpoint : "myProcessEndpoint"  # function used to aggregate endpoints for statistics
+  phases:
+      - duration: 10
+        arrivalRate: 1
+        name: Warm up
+      - duration: 30
+        arrivalRate: 3
+        name: Sustained load
+
+scenarios:
+  - name: 'Cognitive Search Load'
+    weight: 1
+    flow:
+      - function: "selectUserSkewed"
+      - post:                          # First: login as a user
+          url: "/user/auth"
+          headers:
+            Content-Type: application/json
+          json:
+            user: "{{ user }}"
+            pwd: "{{ pwd }}"
+      - get:                          # Get user info
+            url: "/user/{{ user }}"
+            headers:
+              Accept: application/json
+            capture: 
+              json: "$"
+              as: "userObj"
+      - function: "selectChannelFromUserSkewed"   # Select channel to post message
+      - loop:
+        - function: "genNewMessageFrogs"           # Generate message information
+        - post:                          # Post image if ....
+            url: "/media"
+            headers:
+              Content-Type: application/octet-stream
+              Accept: application/json
+            beforeRequest: "uploadImageBody"
+            capture: 
+              regexp: "(.+)"
+              as: "imageId"              # capture the reply as image id to be used in user creation
+            ifTrue: "hasImage"   # post has image and there is a channel
+        - post:                          # Post message
+            url: "/messages"
+            headers:
+              Content-Type: application/json
+              Accept: application/json
+            json:                         # NOTE: it is not necessary to send all fields
+              channel: "{{ channelId }}"
+              user: "{{ user }}"
+              text: "{{ msgText }}"
+              imageId: "{{ imageId }}"
+            ifTrue: "channelId"
+        count: 30
+      - get:
+          url: "/messages/search/{{channelId}}/?text=frogs"
+          headers:
+              Accept: application/json
+          ifTrue: "channelId"
+          
+
+             
+

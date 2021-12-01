@@ -12,12 +12,8 @@ config:
       - duration: 10
         arrivalRate: 1
         name: Warm up
-      - duration: 15
-        arrivalRate: 3
-        rampTo: 20
-        name: Ramp up load
       - duration: 30
-        arrivalRate: 5
+        arrivalRate: 3
         name: Sustained load
 
 
@@ -58,8 +54,8 @@ scenarios:
                   headers: 
                     Accept: application/octet-stream
             over: "imageIdLst"
-          whileTrue: 
-        whileTrue: "random70"
+          whileTrue: "random50"
+        whileTrue: "random50"
 
   - name: 'Private Channel Test'
     weight: 1
@@ -103,8 +99,7 @@ scenarios:
         - function: "selectUserfromUserLst"
         - delete:
             url: "/channel/{{ channelId }}/remove/{{ user }}" #remove users from private channel
-        count: 3
-          # delete again for a 404 ? make sure it's deleted?
+        count: 3 # delete again for a 404 ? make sure it's deleted?
       - delete: 
           url: "/channel/{{ channelId }}" #delete private channel
         
@@ -148,7 +143,7 @@ scenarios:
         - delete: 
             url: "/user/{{ user }}/unsubscribe/{{ channelId }}"
             ifTrue: "random50"
-        count: 20
+        count: 15
       - get:
           url: "/channel/{{ channelId }}/users" #Get channel members
           headers:

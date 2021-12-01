@@ -16,6 +16,7 @@ module.exports = {
   selectChannelFromChannelLstSkewed,
   selectUserfromUserLst,
   genNewMessage,
+  genNewMessageFrogs,
   selectImagesIdFromMsgList,
   random50,
   random70
@@ -241,7 +242,7 @@ function selectChannelFromChannelLst(context, events, done) {
 /**
  * Select a channel from the list of channelIds in a user
  */
- function selectUserfromUserLst(context, events, done) {
+function selectUserfromUserLst(context, events, done) {
 	if( typeof context.vars.userLst !== 'undefined' && context.vars.userLst.length > 0)
 		context.vars.user = context.vars.userLst.sample()
 	return done()
@@ -264,6 +265,20 @@ function selectChannelFromChannelLstSkewed(context, events, done) {
  */
 function genNewMessage(context, events, done) {
 	context.vars.msgText = `${Faker.lorem.paragraph()}`
+	if( Math.random() < 0.05) {
+		context.vars.hasImage = true
+	} else {
+		delete context.vars.hasImage
+	}
+	context.vars.imageId = null
+	return done()
+}
+
+/**
+ * Generate data for a new message
+ */
+ function genNewMessageFrogs(context, events, done) {
+	context.vars.msgText = `${Faker.lorem.paragraph()} frogs`
 	if( Math.random() < 0.05) {
 		context.vars.hasImage = true
 	} else {
