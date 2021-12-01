@@ -1,0 +1,167 @@
+config:
+  target: 'https://scc-backend-55697.azurewebsites.net/rest'
+  #target: 'http://localhost:8080/rest'
+  http:
+    timeout: 60
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+     metricsProcessEndpoint : "myProcessEndpoint"  # function used to aggregate endpoints for statistics
+  phases:
+      - duration: 10
+        arrivalRate: 1
+        name: Warm up
+      - duration: 15
+        arrivalRate: 3
+        rampTo: 20
+        name: Ramp up load
+      - duration: 30
+        arrivalRate: 5
+        name: Sustained load
+
+
+scenarios:
+  - name: 'Reading Test'
+    weight: 1
+    flow:
+      - loop:
+        - function: "selectUserSkewed"
+        - post:                          # First: login as a user
+            url: "/user/auth"
+            headers:
+              Content-Type: application/json
+            json:
+              user: "{{ user }}"
+              pwd: "{{ pwd }}"
+        - loop:
+          - get:                          # Get user channels
+              url: "/user/{{ user }}/channels"
+              headers:
+                Accept: application/json
+              capture: 
+                json: "$"
+                as: "channelLst"
+          - function: "selectChannelFromChannelLstSkewed"   # Select channel to read messages
+          - get:                         
+              url: "/channel/{{ channelId }}/messages"
+              headers:
+                Accept: application/json
+              capture: 
+                json: "$"
+                as: "msgList"
+              ifTrue: "channelId"
+          - function: "selectImagesIdFromMsgList"   # Select imageIds from MsgList
+          - loop:                                   # load images
+              - get:
+                  url: "/media/{{ $loopElement }}"
+                  headers: 
+                    Accept: application/octet-stream
+            over: "imageIdLst"
+          whileTrue: 
+        whileTrue: "random70"
+
+  - name: 'Private Channel Test'
+    weight: 1
+    flow:
+      - function: "selectUserSkewed"
+      - post:                          # First: login as a user
+          url: "/user/auth"
+          headers:
+            Content-Type: application/json
+          json:
+            user: "{{ user }}"
+            pwd: "{{ pwd }}"
+      - function: "genNewChannel"
+      - post:                          # Create channel
+          url: "/channel"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+          json:
+            name: "{{ channelName }}"
+            owner: "{{ user }}"
+            publicChannel: false
+            members: []
+          capture:                     # Capturing channel id
+            - json: $.id
+              as: "channelId"
+      - loop:
+        - function: "selectUserSkewed"
+        - post:                          # Add users to private channel   
+            url: "/channel/{{ channelId }}/add/{{ user }}"
+        count: 10
+      - get:
+          url: "/channel/{{ channelId }}/users" #Get channel members
+          headers:
+            Accept: application/json
+          capture: 
+            json: "$"
+            as: "userLst"
+          ifTrue: "channelId"
+      - loop: 
+        - function: "selectUserfromUserLst"
+        - delete:
+            url: "/channel/{{ channelId }}/remove/{{ user }}" #remove users from private channel
+        count: 3
+          # delete again for a 404 ? make sure it's deleted?
+      - delete: 
+          url: "/channel/{{ channelId }}" #delete private channel
+        
+  - name: 'Public Channel Test'
+    weight: 1
+    flow:
+      - function: "selectUserSkewed"
+      - post:                          # First: login as a user
+          url: "/user/auth"
+          headers:
+            Content-Type: application/json
+          json:
+            user: "{{ user }}"
+            pwd: "{{ pwd }}"
+      - function: "genNewChannel"
+      - post:                          # Create channel
+          url: "/channel"
+          headers:
+            Content-Type: application/json
+            Accept: application/json
+          json:
+            name: "{{ channelName }}"
+            owner: "{{ user }}"
+            publicChannel: true
+            members: []
+          capture:                     # Capturing channel id
+            - json: $.id
+              as: "channelId"
+      - loop:                          # Let's add 20 users to the channel
+        - function: "selectUserSkewed"
+        - post:                         
+            url: "/user/auth"
+            headers:
+              Content-Type: application/json
+            json:
+              user: "{{ user }}"
+              pwd: "{{ pwd }}"
+        - post:                          # Subscribe     
+            url: "/user/{{ user }}/subscribe/{{ channelId }}"
+        - think: 2
+        - delete: 
+            url: "/user/{{ user }}/unsubscribe/{{ channelId }}"
+            ifTrue: "random50"
+        count: 20
+      - get:
+          url: "/channel/{{ channelId }}/users" #Get channel members
+          headers:
+            Accept: application/json
+          capture: 
+            json: "$"
+            as: "userLst" 
+          ifTrue: "channelId"
+      - delete: 
+         url: "/channel/{{ channelId }}" #delete private channel
+        
+        
+        
+        
+
+        
