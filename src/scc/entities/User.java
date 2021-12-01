@@ -14,7 +14,6 @@ public class User {
     public static final String CHANNELIDS = "channelIds";
 
 
-
     private String id;
     private String name;
     private String pwd;

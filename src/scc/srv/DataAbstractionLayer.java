@@ -51,20 +51,25 @@ public class DataAbstractionLayer {
     public DataAbstractionLayer() {
 
     }
+
     public DataAbstractionLayer(boolean cache) {
         useCache = cache;
     }
 
     private MongoCollection<Document> map(char type) {
         switch (type) {
-            case MESSAGE: return messageCol;
-            case USER: return userCol;
-            case CHANNEL: return channelCol;
-            default: return null;
+            case MESSAGE:
+                return messageCol;
+            case USER:
+                return userCol;
+            case CHANNEL:
+                return channelCol;
+            default:
+                return null;
         }
     }
 
-    public MongoCollection<Document> getUserCol () {
+    public MongoCollection<Document> getUserCol() {
         return userCol;
     }
 
@@ -146,7 +151,7 @@ public class DataAbstractionLayer {
 
     public void updateOneDocument(String id, Document filter, Document update, char collection) {
         assert map(collection) != null;
-        if(useCache) {
+        if (useCache) {
             Document d = map(collection).findOneAndUpdate(filter, update, new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
             this.removeFromCache(this.getKey(collection, id));
             this.writeToCache(d, this.getKey(collection, id));
@@ -157,14 +162,14 @@ public class DataAbstractionLayer {
 
     public void deleteOneDocument(String id, Document filter, char collection) {
         map(collection).deleteOne(filter);
-        if(useCache) {
+        if (useCache) {
             this.removeFromCache(this.getKey(collection, id));
         }
     }
 
     public void insertOneDocument(String id, Document insert, char collection) {
         map(collection).insertOne(insert);
-        if(useCache) {
+        if (useCache) {
             this.writeToCache(insert, this.getKey(collection, id));
         }
     }

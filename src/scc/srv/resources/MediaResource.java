@@ -5,9 +5,7 @@ import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.models.BlobStorageException;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.client.result.UpdateResult;
 import org.bson.Document;
 import scc.entities.Media;
 import scc.srv.DataAbstractionLayer;
@@ -33,7 +31,6 @@ public class MediaResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public byte[] download(@PathParam("id") String id) {
-        // TODO Error handling
         BlobClient blob = containerClient.getBlobClient(id);
 
         // Download contents to BinaryData
@@ -52,25 +49,25 @@ public class MediaResource {
         try {
             BlobClient blob = containerClient.getBlobClient(hash);
             blob.upload(BinaryData.fromBytes(data));
-        } catch (BlobStorageException ignored) {}
+        } catch (BlobStorageException ignored) {
+        }
 
         return hash;
     }
 
     public void delete(String hash) {
-        //TODO Possible race condition if is updated between these two requests???
         DeleteResult a = mCol.deleteOne(
                 new Document(Media.ID, hash)
                         .append(Media.REFERENCES, 1)
         );
-        if (a.getDeletedCount()<=0){
+        if (a.getDeletedCount() <= 0) {
             Document beforeUpdate = mCol.findOneAndUpdate(
                     new Document(Media.ID, hash),
                     new Document()
                             .append("$dec", new Document(Media.REFERENCES, 1))
             );
 
-        }else {
+        } else {
             containerClient.getBlobClient(hash).delete();
         }
 

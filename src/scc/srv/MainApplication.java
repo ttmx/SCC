@@ -1,9 +1,9 @@
 package scc.srv;
 
 import scc.srv.resources.ChannelResource;
+import scc.srv.resources.MediaResource;
 import scc.srv.resources.MessageResource;
 import scc.srv.resources.UserResource;
-import scc.srv.resources.MediaResource;
 
 import javax.ws.rs.core.Application;
 import java.util.HashSet;

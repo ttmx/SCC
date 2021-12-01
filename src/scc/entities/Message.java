@@ -2,9 +2,6 @@ package scc.entities;
 
 import org.bson.Document;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class Message {
     private String id;
     private String replyTo;
@@ -79,13 +76,13 @@ public class Message {
     }
 
     static public Message fromDocument(Document doc) {
-        return new Message (
-                (String)doc.get("_id"),
-                (String)doc.get("replyTo"),
-                (String)doc.get("channel"),
-                (String)doc.get("user"),
-                (String)doc.get("text"),
-                (String)doc.get("imageId")
+        return new Message(
+                (String) doc.get("_id"),
+                (String) doc.get("replyTo"),
+                (String) doc.get("channel"),
+                (String) doc.get("user"),
+                (String) doc.get("text"),
+                (String) doc.get("imageId")
         );
     }
 

@@ -10,7 +10,6 @@ import scc.entities.exceptions.CacheException;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Cookie;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -141,7 +140,7 @@ public class Redis {
                     .collect(Collectors.groupingBy(w -> w, Collectors.counting()))
                     .entrySet()
                     .stream()
-                    .sorted((a,b) -> Long.compare(b.getValue(), a.getValue()))
+                    .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
                     .map(Map.Entry::getKey)
                     .limit(3)
                     .collect(Collectors.toList());

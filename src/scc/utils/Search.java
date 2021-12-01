@@ -10,7 +10,6 @@ import com.azure.search.documents.util.SearchPagedResponse;
 import scc.Env;
 import scc.entities.Message;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 

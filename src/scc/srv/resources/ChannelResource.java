@@ -93,7 +93,7 @@ public class ChannelResource {
             this.data.updateOneDocument(owner, new Document("_id", owner), new Document("$addToSet", new Document("channelIds", channel.getId())), DataAbstractionLayer.USER);
 
             return channel;
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
         } catch (Exception e) {
             throw new InternalServerErrorException(e);
@@ -196,7 +196,6 @@ public class ChannelResource {
     private void insertChannel(Channel c) {
         this.data.insertOneDocument(c.getId(), c.toDocument(), DataAbstractionLayer.CHANNEL);
     }
-
 
 
     @Path("/trending")

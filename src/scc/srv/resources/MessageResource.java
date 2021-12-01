@@ -74,7 +74,6 @@ public class MessageResource {
     @Path("/{id}")
     @DELETE
     public void deleteMessage(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
-        // TODO garbage collect
         try {
             String userId = this.redis.getUserFromCookie(session);
             Document messageDoc = this.data.getDocument(id, new Document("_id", id), DataAbstractionLayer.MESSAGE);

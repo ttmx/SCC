@@ -1,7 +1,10 @@
 package scc.srv.resources;
 
 import org.bson.Document;
-import scc.entities.*;
+import scc.entities.Channel;
+import scc.entities.Session;
+import scc.entities.User;
+import scc.entities.UserAuth;
 import scc.srv.DataAbstractionLayer;
 import scc.utils.Hash;
 import scc.utils.Log;
@@ -48,7 +51,7 @@ public class UserResource {
     @Path("/checkcookie/{id}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkCookie(@CookieParam(SESSION_COOKIE) Cookie s,@PathParam("id") String userId){
+    public Response checkCookie(@CookieParam(SESSION_COOKIE) Cookie s, @PathParam("id") String userId) {
         System.out.println(s.getValue());
         this.redis.checkCookieUser(s, userId);
         return Response.ok().build();
@@ -65,9 +68,9 @@ public class UserResource {
             return user;
         } catch (NotAuthorizedException e) {
             return user.setChannelIds(null);
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new InternalServerErrorException(e);
         }
@@ -76,7 +79,6 @@ public class UserResource {
     @Path("/{id}")
     @DELETE
     public void deleteUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id) {
-        // TODO Authenticate, garbage collect avatar and channels
         this.redis.checkCookieUser(session, id);
         this.data.deleteOneDocument(id, new Document(ID, id), DataAbstractionLayer.USER);
     }
@@ -96,9 +98,9 @@ public class UserResource {
             this.redis.checkCookieUser(session, id);
             User user = getUser(id);
             return user.getChannelIds();
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
     }
@@ -113,7 +115,7 @@ public class UserResource {
         }
         Log.d("UserResource", "Creating " + user);
 
-        if (this.data.getDocument(user.getId(),new Document(ID, user.getId()), DataAbstractionLayer.USER) == null) {
+        if (this.data.getDocument(user.getId(), new Document(ID, user.getId()), DataAbstractionLayer.USER) == null) {
             user.setChannelIds(new String[0]);
             String pwd = user.getPwd();
             user.setPwd(Hash.of(user.getPwd()));
@@ -128,12 +130,11 @@ public class UserResource {
     @Path("/{id}/subscribe/{channelId}")
     @POST
     public void addChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
-        // TODO deal with authentication for this to work, this only works for public channels?
         try {
             this.redis.checkCookieUser(session, id);
             Document channelDoc = this.data.getChannel(channelId); //this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
 
-            if(channelDoc == null) {
+            if (channelDoc == null) {
                 throw new BadRequestException();
             }
 
@@ -141,16 +142,16 @@ public class UserResource {
 
             if (channel.getPublicChannel()) {
                 // Add user to channel
-                this.data.updateOneDocument(channelId, new Document("_id", channelId), new Document("$addToSet" , new Document("members", id)), DataAbstractionLayer.CHANNEL);
+                this.data.updateOneDocument(channelId, new Document("_id", channelId), new Document("$addToSet", new Document("members", id)), DataAbstractionLayer.CHANNEL);
 
                 // Add channel to user
-                this.data.updateOneDocument(id, new Document("_id", id), new Document("$addToSet" , new Document("channelIds", channelId)), DataAbstractionLayer.USER);
+                this.data.updateOneDocument(id, new Document("_id", id), new Document("$addToSet", new Document("channelIds", channelId)), DataAbstractionLayer.USER);
             } else {
                 throw new ForbiddenException();
             }
-        } catch(WebApplicationException e) {
+        } catch (WebApplicationException e) {
             throw e;
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new InternalServerErrorException(e);
         }
     }
@@ -161,17 +162,17 @@ public class UserResource {
         this.redis.checkCookieUser(session, id);
         Document channelDoc = this.data.getChannel(channelId); //this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
 
-        if(channelDoc == null) {
+        if (channelDoc == null) {
             throw new BadRequestException();
         }
 
         Channel channel = Channel.fromDocument(channelDoc);
         if (channel.hasMember(id)) {
             // Remove user from channel
-            this.data.updateOneDocument(channelId, new Document("_id", channelId), new Document("$pull" , new Document("members", id)), DataAbstractionLayer.CHANNEL);
+            this.data.updateOneDocument(channelId, new Document("_id", channelId), new Document("$pull", new Document("members", id)), DataAbstractionLayer.CHANNEL);
 
             // Remove channel from user
-            this.data.updateOneDocument(id, new Document("_id", id), new Document("$pull" , new Document("channelIds", channelId)), DataAbstractionLayer.USER);
+            this.data.updateOneDocument(id, new Document("_id", id), new Document("$pull", new Document("channelIds", channelId)), DataAbstractionLayer.USER);
 
         } else {
             throw new ForbiddenException();
@@ -189,7 +190,7 @@ public class UserResource {
         String userId = this.redis.getUserFromCookie(session);
         Log.d("UserResource", "Update " + user);
         Document userDoc = this.data.getDocument(userId, new Document(ID, userId), DataAbstractionLayer.USER);
-        if(userDoc != null) {
+        if (userDoc != null) {
             Document update = new Document();
             if (user.getPwd() != null)
                 update.append(PWD, Hash.of(user.getPwd()));
