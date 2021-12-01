@@ -1,8 +1,9 @@
 package scc.srv;
 
+import scc.srv.resources.ChannelResource;
+import scc.srv.resources.MediaResource;
 import scc.srv.resources.MessageResource;
 import scc.srv.resources.UserResource;
-import scc.srv.resources.MediaResource;
 
 import javax.ws.rs.core.Application;
 import java.util.HashSet;
@@ -13,10 +14,13 @@ public class MainApplication extends Application {
     private final Set<Class<?>> resources = new HashSet<Class<?>>();
 
     public MainApplication() {
+        DataAbstractionLayer data = new DataAbstractionLayer();
         resources.add(ControlResource.class);
-        singletons.add(new UserResource());
-        singletons.add(new MessageResource());
-        singletons.add(new MediaResource());
+        singletons.add(new UserResource(data));
+        singletons.add(new MessageResource(data));
+        singletons.add(new ChannelResource(data));
+        singletons.add(new MediaResource(data));
+        singletons.add(data);
     }
 
     @Override

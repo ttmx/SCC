@@ -1,7 +1,5 @@
 package scc.srv;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import scc.Env;
 
 import javax.ws.rs.GET;
@@ -23,21 +21,20 @@ public class ControlResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
-        return "v: 0003";
-    }
-    @Path("/vargaming")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String var() {
-        var e = System.getenv();
-        return e.keySet().stream().reduce("",(a,b) ->b+"="+e.get(b)+"\n"+a);
+        return "v: 0030";
     }
 
-    @Path("/mdb")
+    @Path("/redis")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String mdb() {
-        MongoClient mc = new MongoClient(new MongoClientURI(Env.DB_URI));
-        return String.valueOf(mc.getCredential().getPassword());
+    public String redis() {
+        return Env.REDIS_HOSTNAME + "\n" + Env.REDIS_KEY + "\n";
+    }
+
+    @Path("/search")
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String search() {
+        return Env.SEARCH_URL + "\n" + Env.SEARCH_KEY + "\n";
     }
 }

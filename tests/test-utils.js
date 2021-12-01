@@ -14,7 +14,9 @@ module.exports = {
   selectChannelFromUserSkewed,
   selectChannelFromChannelLst,
   selectChannelFromChannelLstSkewed,
+  selectUserfromUserLst,
   genNewMessage,
+  genNewMessageFrogs,
   selectImagesIdFromMsgList,
   random50,
   random70
@@ -35,12 +37,16 @@ var statsRegExpr = [ [/.*\/rest\/media\/.*/,"GET","/rest/media/*"],
 			[/.*\/rest\/user\/.*\/channels/,"GET","/rest/user/*/channels"],
 			[/.*\/rest\/user\/.*/,"GET","/rest/user/*"],
 			[/.*\/rest\/user\/.*\/subscribe\/.*/,"POST","/rest/user/*/subscribe/*"],
+			[/.*\/rest\/user\/.*\/unsubscribe\/.*/,"DELETE","/rest/user/*/unsubscribe/*"],
 			[/.*\/rest\/user\/auth/,"POST","/rest/user/auth"],
 			[/.*\/rest\/user/,"POST","/rest/user"],
 			[/.*\/rest\/channel\/.*\/add\/.*/,"POST","/rest/channel/*/add/*"],
+			[/.*\/rest\/channel\/.*\/remove\/.*/,"DELETE","/rest/channel/*/remove/*"],
 			[/.*\/rest\/channel/,"POST","/rest/channel"],
 			[/.*\/rest\/channel\/.*\/messages.*/,"GET","/rest/channel/*/messages"],
+			[/.*\/rest\/channel\/.*\/users.*/,"GET","/rest/channel/*/users"],
 			[/.*\/rest\/channel\/.*/,"GET","/rest/channel/*"],
+			[/.*\/rest\/channel\/.*/,"DELETE","/rest/channel/*"],
 			[/.*\/rest\/messages/,"POST","/rest/messages"],
 			[/.*\/rest\/messages\/.*/,"GET","/rest/messages/*"]
 	]
@@ -236,6 +242,15 @@ function selectChannelFromChannelLst(context, events, done) {
 /**
  * Select a channel from the list of channelIds in a user
  */
+function selectUserfromUserLst(context, events, done) {
+	if( typeof context.vars.userLst !== 'undefined' && context.vars.userLst.length > 0)
+		context.vars.user = context.vars.userLst.sample()
+	return done()
+}
+
+/**
+ * Select a channel from the list of channelIds in a user
+ */
 function selectChannelFromChannelLstSkewed(context, events, done) {
 	if( typeof context.vars.channelLst !== 'undefined' && context.vars.channelLst.length > 0)
 		context.vars.channelId = context.vars.channelLst.sampleSkewed()
@@ -250,6 +265,20 @@ function selectChannelFromChannelLstSkewed(context, events, done) {
  */
 function genNewMessage(context, events, done) {
 	context.vars.msgText = `${Faker.lorem.paragraph()}`
+	if( Math.random() < 0.05) {
+		context.vars.hasImage = true
+	} else {
+		delete context.vars.hasImage
+	}
+	context.vars.imageId = null
+	return done()
+}
+
+/**
+ * Generate data for a new message
+ */
+ function genNewMessageFrogs(context, events, done) {
+	context.vars.msgText = `${Faker.lorem.paragraph()} frogs`
 	if( Math.random() < 0.05) {
 		context.vars.hasImage = true
 	} else {
@@ -292,4 +321,18 @@ function random70(context, next) {
   const continueLooping = Math.random() < 0.7
   return next(continueLooping);
 }
+
+function extractCookie(requestParams, response, context, ee, next) {
+    if( response.statusCode >= 200 && response.statusCode < 300)  {
+        for( let header of response.rawHeaders) {
+            if( header.startsWith("scc:session")) {
+                context.vars.mycookie = header.split(';')[0];
+            }
+        }
+    }
+    return next()
+}
+
+
+
 

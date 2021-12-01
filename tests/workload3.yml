@@ -1,39 +1,43 @@
 config:
   target: 'https://scc-backend-55697.azurewebsites.net/rest'
+  #target: 'http://localhost:8080/rest'
   http:
-    timeout: 10
+    timeout: 80
   plugins:
     metrics-by-endpoint: {}
   processor: "./test-utils.js"
   variables:
      metricsProcessEndpoint : "myProcessEndpoint"  # function used to aggregate endpoints for statistics
   phases:
-  - name: "Create messages"    # Create messages
-    arrivalCount: 10         
-    duration: 20
+      - duration: 10
+        arrivalRate: 1
+        name: Warm up
+      - duration: 30
+        arrivalRate: 3
+        name: Sustained load
 
 scenarios:
-  - name: 'Create message'
+  - name: 'Cognitive Search Load'
     weight: 1
     flow:
-      - loop:                         # Let's create 2000 messages
-        - function: "selectUserSkewed"
-        - post:                          # First: login as a user
-            url: "/user/auth"
-            headers:
-              Content-Type: application/json
-            json:
-              user: "{{ user }}"
-              pwd: "{{ pwd }}"
-        - get:                          # Get user info
+      - function: "selectUserSkewed"
+      - post:                          # First: login as a user
+          url: "/user/auth"
+          headers:
+            Content-Type: application/json
+          json:
+            user: "{{ user }}"
+            pwd: "{{ pwd }}"
+      - get:                          # Get user info
             url: "/user/{{ user }}"
             headers:
               Accept: application/json
             capture: 
               json: "$"
               as: "userObj"
-        - function: "selectChannelFromUserSkewed"   # Select channel to post message
-        - function: "genNewMessage"           # Generate message information
+      - function: "selectChannelFromUserSkewed"   # Select channel to post message
+      - loop:
+        - function: "genNewMessageFrogs"           # Generate message information
         - post:                          # Post image if ....
             url: "/media"
             headers:
@@ -55,4 +59,13 @@ scenarios:
               text: "{{ msgText }}"
               imageId: "{{ imageId }}"
             ifTrue: "channelId"
-        count: 200
+        count: 30
+      - get:
+          url: "/messages/search/{{channelId}}/?text=frogs"
+          headers:
+              Accept: application/json
+          ifTrue: "channelId"
+          
+
+             
+

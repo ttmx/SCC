@@ -1,5 +1,7 @@
 package scc.entities;
 
+import org.bson.Document;
+
 public class Message {
     private String id;
     private String replyTo;
@@ -71,5 +73,25 @@ public class Message {
     @Override
     public String toString() {
         return "Message [id=" + this.id + ", replyTo=" + this.replyTo + ", channel=" + this.channel + ", user=" + this.user + ", text=" + this.text + ", imageId=" + imageId + "]";
+    }
+
+    static public Message fromDocument(Document doc) {
+        return new Message(
+                (String) doc.get("_id"),
+                (String) doc.get("replyTo"),
+                (String) doc.get("channel"),
+                (String) doc.get("user"),
+                (String) doc.get("text"),
+                (String) doc.get("imageId")
+        );
+    }
+
+    public Document toDocument() {
+        return new Document("_id", id)
+                .append("replyTo", replyTo)
+                .append("channel", channel)
+                .append("user", user)
+                .append("text", text)
+                .append("imageId", imageId);
     }
 }
