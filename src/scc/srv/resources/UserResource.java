@@ -132,7 +132,7 @@ public class UserResource {
     public void addChannelToUser(@CookieParam(SESSION_COOKIE) Cookie session, @PathParam("id") String id, @PathParam("channelId") String channelId) {
         try {
             this.redis.checkCookieUser(session, id);
-            Document channelDoc = this.data.getChannel(channelId); //this.data.getDocument(channelId, new Document("_id", channelId), DataAbstractionLayer.CHANNEL);
+            Document channelDoc = this.data.getChannel(channelId);
 
             if (channelDoc == null) {
                 throw new BadRequestException();

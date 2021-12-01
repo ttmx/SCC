@@ -20,7 +20,7 @@ import org.bson.Document;
 public class TimerFunction {
     @FunctionName("periodic-compute")
     public void cosmosFunction( @TimerTrigger(name = "periodicSetTime", 
-    								schedule = "30 * * * * *") 
+    								schedule = "30 */15 * * * *")
     				String timerInfo,
     				ExecutionContext context) {
 
@@ -30,24 +30,26 @@ public class TimerFunction {
         MongoClient mc = new MongoClient(new MongoClientURI(DB_URI));
         MongoDatabase mdb = mc.getDatabase(DB_NAME);
 
-
         MongoCollection<Document> messageCol = mdb.getCollection("messages");
         MongoCollection<Document> channelCol = mdb.getCollection("channels");
         MongoCollection<Document> usersCol = mdb.getCollection("users");
 
-
         FindIterable<Document> channels = channelCol.find(new Document("softDeleted", true));
         for (Document channel : channels) {
+
+            System.out.println("Deleting channel" + channel);
 
             messageCol.deleteMany(new Document("channel", channel.get("_id")));
 
             List<String> users = ((List<String>) channel.get("members"));
 
-            usersCol.updateMany(new Document("_id",users),
-                    new Document("$pull",channel.get("_id"))
+            System.out.println("Cleaning up members " +Arrays.toString(users.toArray()));
+
+            usersCol.updateMany(new Document("_id", new Document("$in", users)),
+                    new Document("$pull", new Document("channelIds", channel.get("_id")))
             );
 
-            channelCol.deleteOne(channel);
+            channelCol.deleteOne(new Document("_id", channel.get("_id")));
         }
 
 
