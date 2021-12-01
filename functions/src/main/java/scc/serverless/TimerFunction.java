@@ -31,14 +31,22 @@ public class TimerFunction {
         MongoDatabase mdb = mc.getDatabase(DB_NAME);
 
 
-        MongoCollection<Document> messageCol = mdb.getCollection("channels");
+        MongoCollection<Document> messageCol = mdb.getCollection("messages");
         MongoCollection<Document> channelCol = mdb.getCollection("channels");
-
+        MongoCollection<Document> usersCol = mdb.getCollection("users");
 
 
         FindIterable<Document> channels = channelCol.find(new Document("softDeleted", true));
         for (Document channel : channels) {
+
             messageCol.deleteMany(new Document("channel", channel.get("_id")));
+
+            List<String> users = ((List<String>) channel.get("members"));
+
+            usersCol.updateMany(new Document("_id",users),
+                    new Document("$pull",channel.get("_id"))
+            );
+
             channelCol.deleteOne(channel);
         }
 
