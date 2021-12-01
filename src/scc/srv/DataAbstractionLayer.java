@@ -21,6 +21,8 @@ import scc.utils.Log;
 import scc.utils.Redis;
 
 import javax.inject.Singleton;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Singleton
 public class DataAbstractionLayer {
@@ -29,6 +31,8 @@ public class DataAbstractionLayer {
     public static final char USER = 'U';
     public static final char MESSAGE = 'M';
     public boolean useCache = true;
+
+    public ExecutorService threadPool = Executors.newFixedThreadPool(4);
 
     MongoClient mc = new MongoClient(new MongoClientURI(Env.DB_URI));
     MongoDatabase mdb = mc.getDatabase(Env.DB_NAME);

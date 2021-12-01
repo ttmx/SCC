@@ -1,3 +1,5 @@
+package scc.serverless;
+
 import com.microsoft.azure.functions.annotation.*;
 import com.microsoft.azure.functions.*;
 

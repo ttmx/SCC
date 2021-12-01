@@ -21,6 +21,7 @@ public class MessageResource {
     Redis redis = Redis.getInstance();
     Search search = new Search();
 
+
     public MessageResource(DataAbstractionLayer data) {
         this.data = data;
     }
@@ -122,6 +123,16 @@ public class MessageResource {
     }
 
     private void insertMessage(Message m) {
+        //Database access not needed to be blocking
+        data.threadPool.execute(() -> {
+            Document channelDoc = this.data.getDocument(m.getId(), new Document("_id", m.getId()).append("deleted", false), DataAbstractionLayer.CHANNEL);
+            if (channelDoc != null) {
+                Channel c = Channel.fromDocument(channelDoc);
+                if (c.getPublicChannel()) {
+                    this.redis.addToTrendingList(m.getChannel());
+                }
+            }
+        });
         this.data.insertOneDocument(m.getId(), m.toDocument(), DataAbstractionLayer.MESSAGE);
     }
 }

@@ -72,7 +72,7 @@ public class Channel {
 
 
     public boolean hasMember(String userId) {
-        return Arrays.stream(this.members).anyMatch(element-> element.equals(userId));
+        return Arrays.asList(this.members).contains(userId);
     }
 
     @Override

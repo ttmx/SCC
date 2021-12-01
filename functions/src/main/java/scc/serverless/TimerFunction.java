@@ -1,4 +1,4 @@
-// package scc.serverless;
+package scc.serverless;// package scc.serverless;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -41,7 +41,8 @@ public class TimerFunction {
             messageCol.deleteMany(new Document("channel", channel.get("_id")));
             channelCol.deleteOne(channel);
         }
-		// System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAA\n\n\n\n\nAAAAAAAAAAAAAAAAAa");
-        // System.out.println(e.keySet().stream().reduce("",(a,b) ->b+"="+e.get(b)+"\n"+a));
+
+
+
     }
 }

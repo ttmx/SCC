@@ -192,4 +192,13 @@ public class ChannelResource {
     private void insertChannel(Channel c) {
         this.data.insertOneDocument(c.getId(), c.toDocument(), DataAbstractionLayer.CHANNEL);
     }
+
+
+
+    @Path("/trending")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<String> getTrending() {
+        return this.redis.getTrending();
+    }
 }

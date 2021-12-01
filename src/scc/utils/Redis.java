@@ -1,7 +1,6 @@
 package scc.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -11,6 +10,11 @@ import scc.entities.exceptions.CacheException;
 
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.core.Cookie;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static scc.Env.REDIS_HOSTNAME;
 import static scc.Env.REDIS_KEY;
@@ -22,6 +26,8 @@ public class Redis {
     private final long COOKIE_EXPIRE = 3600;
 
     private static final String SESSION_PATH = "session/";
+    private static final String TRENDING = "channels/trending/";
+
 
     private Redis() {
 
@@ -71,7 +77,7 @@ public class Redis {
             if (a == null) {
                 throw new CacheException();
             }
-            username = om.readValue(jedis.get(SESSION_PATH+s), String.class);
+            username = om.readValue(jedis.get(SESSION_PATH + s), String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -84,7 +90,7 @@ public class Redis {
         String username = null;
         ObjectMapper om = new ObjectMapper();
         try (Jedis jedis = Redis.getCachePool().getResource()) {
-            username = om.readValue(jedis.get(SESSION_PATH+sess.getValue()),String.class);
+            username = om.readValue(jedis.get(SESSION_PATH + sess.getValue()), String.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
@@ -106,7 +112,7 @@ public class Redis {
         }
         if (s == null || s.getUsername() == null || s.getUsername().length() == 0)
             throw new NotAuthorizedException("No valid session initialized");
-        if (!s.getUsername().equals(userId)){
+        if (!s.getUsername().equals(userId)) {
             throw new NotAuthorizedException("Inconsistent User : " + s.getUsername() + " " + userId);
 
         }
@@ -116,5 +122,30 @@ public class Redis {
         }
 
         return s;
+    }
+
+    public void addToTrendingList(String chanId) {
+        ObjectMapper mapper = new ObjectMapper();
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            jedis.lpush(TRENDING, chanId);
+            jedis.ltrim(TRENDING, 0, 100);
+        }
+    }
+
+    public List<String> getTrending() {
+
+        List<String> toReturn;
+        try (Jedis jedis = Redis.getCachePool().getResource()) {
+            List<String> allChannels = jedis.lrange(TRENDING, 0, -1);
+            toReturn = allChannels.stream()
+                    .collect(Collectors.groupingBy(w -> w, Collectors.counting()))
+                    .entrySet()
+                    .stream()
+                    .sorted(Comparator.comparingLong(Map.Entry::getValue))
+                    .map(Map.Entry::getKey)
+                    .limit(3)
+                    .collect(Collectors.toList());
+        }
+        return toReturn;
     }
 }
