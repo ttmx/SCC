@@ -2,7 +2,7 @@ config:
   target: 'https://scc-backend-55697.azurewebsites.net/rest'
   #target: 'http://localhost:8080/rest'
   http:
-    timeout: 60
+    timeout: 10
   plugins:
     metrics-by-endpoint: {}
   processor: "./test-utils.js"
