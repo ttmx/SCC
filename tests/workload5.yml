@@ -54,9 +54,7 @@ scenarios:
             capture: 
               - json: "$"
                 as: "userObj"
-        - log: "userobj: {{ userObj }}"        
         - function: "setfromUserObj"
-        - log: "user after function : {{ user }} + {{ pwd }}"
         - post:                          
             url: "/user/auth"
             headers:
