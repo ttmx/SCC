@@ -1,0 +1,77 @@
+config:
+  target: 'https://scc-backend-55697.azurewebsites.net/rest'
+  #target: 'http://localhost:8080/rest'
+  http:
+    timeout: 80
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+     metricsProcessEndpoint : "myProcessEndpoint"  # function used to aggregate endpoints for statistics
+  phases:
+      - duration: 10
+        arrivalRate: 1
+        name: Warm up
+      - duration: 30
+        arrivalRate: 3
+        name: Sustained load
+  environments:
+    georep:
+      target: 'https://scc-backend-55697.azurewebsites.net/rest'
+      phases:
+          - duration: 10
+            arrivalRate: 1
+            name: Warm up
+          - duration: 30
+            arrivalRate: 3
+            name: Sustained load
+
+scenarios:
+  - name: 'Trending Test'
+    weight: 1
+    flow:
+      - loop:
+        - function: "selectUserSkewed"
+        - post:                          # First: login as a user
+            url: "/user/auth"
+            headers:
+              Content-Type: application/json
+            json:
+              user: "{{ user }}"
+              pwd: "{{ pwd }}"
+        - get: 
+            url: "/channel/trending"
+            headers:
+              Accept: application/json
+        - function: "genNewChannel"
+        - post:                          # Create channel
+            url: "/channel"
+            headers:
+              Content-Type: application/json
+              Accept: application/json
+            json:
+              name: "{{ channelName }}"
+              owner: "{{ user }}"
+              publicChannel: true
+              members: []
+            capture:                     # Capturing channel id
+              - json: $.id
+                as: "channelId"
+        - loop:
+          - post:                          # Post message
+              url: "/messages"
+              headers:
+                Content-Type: application/json
+                Accept: application/json
+              json:                         # NOTE: it is not necessary to send all fields
+                channel: "{{ channelId }}"
+                user: "{{ user }}"
+                text: "{{ msgText }}"
+                imageId: "{{ imageId }}"
+              ifTrue: "channelId"
+          whileTrue: "random70"
+        - get: 
+            url: "/channel/trending"
+            headers:
+              Accept: application/json
+        count: 15

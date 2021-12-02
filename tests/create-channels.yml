@@ -11,6 +11,13 @@ config:
   - name: "Create channels"    # Create channels
     duration: 1
     arrivalCount: 1
+  environments:
+    georep:
+      target: 'https://scc-backend-55697.azurewebsites.net/rest'
+      phases:
+      - name: "Create channels"    # Create channels
+        duration: 1
+        arrivalCount: 1
 
 scenarios:
   - name: 'Create channels'

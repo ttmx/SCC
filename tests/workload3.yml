@@ -15,6 +15,16 @@ config:
       - duration: 30
         arrivalRate: 3
         name: Sustained load
+  environments:
+    georep:
+      target: 'https://scc-backend-55697.azurewebsites.net/rest'
+      phases:
+          - duration: 10
+            arrivalRate: 1
+            name: Warm up
+          - duration: 30
+            arrivalRate: 3
+            name: Sustained load
 
 scenarios:
   - name: 'Cognitive Search Load'
@@ -61,7 +71,7 @@ scenarios:
             ifTrue: "channelId"
         count: 30
       - get:
-          url: "/messages/search/{{channelId}}/?text=frogs"
+          url: "/messages/search/{{ channelId }}/?text=frogs"
           headers:
               Accept: application/json
           ifTrue: "channelId"
