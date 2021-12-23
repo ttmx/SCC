@@ -15,6 +15,7 @@ module.exports = {
   selectChannelFromChannelLst,
   selectChannelFromChannelLstSkewed,
   selectUserfromUserLst,
+  setfromUserObj,
   genNewMessage,
   genNewMessageFrogs,
   selectImagesIdFromMsgList,
@@ -40,11 +41,14 @@ var statsRegExpr = [ [/.*\/rest\/media\/.*/,"GET","/rest/media/*"],
 			[/.*\/rest\/user\/.*\/unsubscribe\/.*/,"DELETE","/rest/user/*/unsubscribe/*"],
 			[/.*\/rest\/user\/auth/,"POST","/rest/user/auth"],
 			[/.*\/rest\/user/,"POST","/rest/user"],
+			[/.*\/rest\/user/,"PUT","/rest/user"],
+			[/.*\/rest\/user\/.*/,"DELETE","/rest/user/*"],
 			[/.*\/rest\/channel\/.*\/add\/.*/,"POST","/rest/channel/*/add/*"],
 			[/.*\/rest\/channel\/.*\/remove\/.*/,"DELETE","/rest/channel/*/remove/*"],
 			[/.*\/rest\/channel/,"POST","/rest/channel"],
 			[/.*\/rest\/channel\/.*\/messages.*/,"GET","/rest/channel/*/messages"],
 			[/.*\/rest\/channel\/.*\/users.*/,"GET","/rest/channel/*/users"],
+			[/.*\/rest\/channel\/trending\/.*/,"GET","/rest/channel/trending"],
 			[/.*\/rest\/channel\/.*/,"GET","/rest/channel/*"],
 			[/.*\/rest\/channel\/.*/,"DELETE","/rest/channel/*"],
 			[/.*\/rest\/messages/,"POST","/rest/messages"],
@@ -229,7 +233,7 @@ function selectChannelFromUserSkewed(context, events, done) {
 }
 
 /**
- * Select a channel from the list of channelIds in a user
+ * Select a channel from the list of channelIds
  */
 function selectChannelFromChannelLst(context, events, done) {
 	if( typeof context.vars.channelLst !== 'undefined' && context.vars.channelLst.length > 0)
@@ -240,13 +244,32 @@ function selectChannelFromChannelLst(context, events, done) {
 }
 
 /**
- * Select a channel from the list of channelIds in a user
+ * Select a user from the list of users
  */
 function selectUserfromUserLst(context, events, done) {
 	if( typeof context.vars.userLst !== 'undefined' && context.vars.userLst.length > 0)
 		context.vars.user = context.vars.userLst.sample()
 	return done()
 }
+
+/**
+ * Set user and pwd from the userObj
+ */
+ function setfromUserObj(context, events, done) {
+	if( typeof context.vars.userObj !== 'undefined' 
+	&& context.vars.userObj.id !== 'undefined'
+	&& context.vars.userObj.pwd !== 'undefined') {
+		let user = context.vars.userObj
+		context.vars.user = user.id
+		context.vars.pwd = user.pwd
+	} else {
+		delete context.vars.userObj
+		delete context.vars.user
+		delete context.vars.pwd
+	}
+	return done()
+}
+
 
 /**
  * Select a channel from the list of channelIds in a user

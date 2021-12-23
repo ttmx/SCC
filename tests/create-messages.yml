@@ -11,6 +11,13 @@ config:
   - name: "Create messages"    # Create messages
     arrivalCount: 10         
     duration: 20
+  environments:
+    georep:
+      target: 'https://scc-backend-55697.azurewebsites.net/rest'
+      phases:
+      - name: "Create messages"    # Create messages
+        arrivalCount: 10         
+        duration: 20
 
 scenarios:
   - name: 'Create message'

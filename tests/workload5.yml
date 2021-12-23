@@ -1,0 +1,77 @@
+config:
+  target: 'https://scc-backend-55697.azurewebsites.net/rest'
+  http:
+    timeout: 10
+  plugins:
+    metrics-by-endpoint: {}
+  processor: "./test-utils.js"
+  variables:
+     metricsProcessEndpoint : "myProcessEndpoint"  # function used to aggregate endpoints for statistics
+  phases:
+      - duration: 10
+        arrivalRate: 1
+        name: Warm up
+      - duration: 30
+        arrivalRate: 3
+        name: Sustained load
+  environments:
+    georep:
+      target: 'https://scc-backend-55697.azurewebsites.net/rest'
+      phases:
+          - duration: 10
+            arrivalRate: 1
+            name: Warm up
+          - duration: 30
+            arrivalRate: 3
+            name: Sustained load
+
+scenarios:
+  - name: 'Creating and Deleting Users'
+    weight: 1
+    flow:
+      - loop:                            
+        - post:                          
+            url: "/media"
+            headers:
+              Content-Type: application/octet-stream
+              Accept: application/json
+            beforeRequest: "uploadImageBody"
+            capture: 
+              regexp: "(.+)"
+              as: "imageId"              
+        - function: "genNewUser"        
+        - post:
+            url: "/user"
+            headers:
+              Content-Type: application/json
+              Accept: application/json
+            json:
+              id: "{{ id }}"
+              name: "{{ name }}"
+              pwd: "{{ pwd }}"
+              photoId: "{{ imageId }}"
+              channelIds: []
+            capture: 
+              - json: "$"
+                as: "userObj"
+        - function: "setfromUserObj"
+        - post:                          
+            url: "/user/auth"
+            headers:
+              Content-Type: application/json
+            json:
+              user: "{{ user }}"
+              pwd: "{{ pwd }}"
+        - get: 
+            url: "/user/{{ user }}"
+            headers:
+              Accept: application/json
+        - put:
+            url: "/user"
+            headers:
+              Content-Type: application/json
+            json:
+              name: "updated"
+        - delete: 
+            url: "/user/{{ user }}"
+        count: 25

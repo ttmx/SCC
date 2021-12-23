@@ -11,6 +11,13 @@ config:
   - name: "Create users"    # Create users
     duration: 1
     arrivalCount: 1
+  environments:
+    georep:
+      target: 'https://scc-backend-bst-replica.azurewebsites.net/'
+      phases:
+      - name: "Create users"    # Create users
+        duration: 1
+        arrivalCount: 1
 
 scenarios:
   - name: 'Create users'

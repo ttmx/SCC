@@ -2,7 +2,7 @@ config:
   target: 'https://scc-backend-55697.azurewebsites.net/rest'
   #target: 'http://localhost:8080/rest'
   http:
-    timeout: 60
+    timeout: 10
   plugins:
     metrics-by-endpoint: {}
   processor: "./test-utils.js"
@@ -15,6 +15,16 @@ config:
       - duration: 30
         arrivalRate: 3
         name: Sustained load
+  environments:
+    georep:
+      target: 'https://scc-backend-55697.azurewebsites.net/rest'
+      phases:
+          - duration: 10
+            arrivalRate: 1
+            name: Warm up
+          - duration: 30
+            arrivalRate: 3
+            name: Sustained load
 
 
 scenarios:
@@ -149,14 +159,8 @@ scenarios:
           headers:
             Accept: application/json
           capture: 
-            json: "$"
-            as: "userLst" 
+            - json: "$"
+              as: "userLst" 
           ifTrue: "channelId"
       - delete: 
          url: "/channel/{{ channelId }}" #delete private channel
-        
-        
-        
-        
-
-        
