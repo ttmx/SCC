@@ -21,20 +21,13 @@ public class ControlResource {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String hello() {
-        return "v: 0030";
+        return "v: 1001";
     }
 
     @Path("/redis")
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public String redis() {
-        return Env.REDIS_HOSTNAME + "\n" + Env.REDIS_KEY + "\n";
-    }
-
-    @Path("/search")
-    @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    public String search() {
-        return Env.SEARCH_URL + "\n" + Env.SEARCH_KEY + "\n";
+        return Env.REDIS_HOSTNAME + "\n";
     }
 }

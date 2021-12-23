@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      imagePullSecrets:
+        - name: regcred 
+      containers:
+        - name: webapp
+          image: jbordalo/scc55697
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_HOSTNAME
+              value: "redis"
+            - name: mongoConnectionString
+              value: "mongodb://root:example@mongo:27017/"
+            - name: DB_NAME
+              value: "sccdb55697"
+            - name: BLOB_PATH
+              value: "/mnt/vol/"
+          volumeMounts:
+            - mountPath: "/mnt/vol"
+              name: mediavolume
+      volumes:
+        - name: mediavolume
+          persistentVolumeClaim:
+            claimName: azure-managed-disk
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp
+spec:
+  type: LoadBalancer
+  selector:
+    app: webapp
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+
