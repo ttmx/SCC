@@ -19,7 +19,7 @@ spec:
       containers:
         - name: webapp
           image: jbordalo/scc55697
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:
@@ -33,9 +33,9 @@ spec:
               value: "/mnt/vol/"
           volumeMounts:
             - mountPath: "/mnt/vol"
-              name: mediavolume
+              name: blobvolume
       volumes:
-        - name: mediavolume
+        - name: blobvolume
           persistentVolumeClaim:
             claimName: azure-managed-disk
 ---
