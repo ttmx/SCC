@@ -43,11 +43,6 @@ public class DataAbstractionLayer {
     MongoCollection<Document> mediaCol = mdb.getCollection(MediaResource.DB_NAME);
     ObjectMapper mapper = new ObjectMapper();
 
-    BlobContainerClient containerClient = new BlobContainerClientBuilder()
-            .connectionString(Env.BLOB_CONN_STRING)
-            .containerName("images")
-            .buildClient();
-
     public DataAbstractionLayer() {
 
     }
@@ -83,10 +78,6 @@ public class DataAbstractionLayer {
 
     public MongoCollection<Document> getMediaCol() {
         return mediaCol;
-    }
-
-    public BlobContainerClient getBlobClient() {
-        return containerClient;
     }
 
     private void writeToCache(Document doc, String key) {

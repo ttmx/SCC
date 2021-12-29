@@ -7,7 +7,6 @@ import scc.entities.Message;
 import scc.srv.DataAbstractionLayer;
 import scc.utils.Log;
 import scc.utils.Redis;
-import scc.utils.Search;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Cookie;
@@ -19,8 +18,6 @@ public class MessageResource {
     public static final String DB_NAME = "messages";
     DataAbstractionLayer data;
     Redis redis = Redis.getInstance();
-    Search search = new Search();
-
 
     public MessageResource(DataAbstractionLayer data) {
         this.data = data;
@@ -38,29 +35,6 @@ public class MessageResource {
                 Document channelDoc = this.data.getChannel(m.getChannel());
                 if (channelDoc != null && Channel.fromDocument(channelDoc).hasMember(userId)) {
                     return m;
-                }
-            }
-        } catch (WebApplicationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InternalServerErrorException(e);
-        }
-        throw new NotFoundException();
-    }
-
-    @Path("/search/{channel}/")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    public Object[] searchMessages(@CookieParam(UserResource.SESSION_COOKIE) Cookie session, @PathParam("channel") String channel, @QueryParam("text") String text) {
-        try {
-            String userId = this.redis.getUserFromCookie(session);
-            Document channelDoc = this.data.getChannel(channel);
-
-            if (channelDoc != null) {
-                Channel c = Channel.fromDocument(channelDoc);
-                if (c.hasMember(userId)) {
-                    // SEARCH
-                    return this.search.searchMessages(channel, text);
                 }
             }
         } catch (WebApplicationException e) {

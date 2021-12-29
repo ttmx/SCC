@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static scc.Env.REDIS_HOSTNAME;
-import static scc.Env.REDIS_KEY;
 
 public class Redis {
     private static Redis redis;
@@ -28,7 +27,6 @@ public class Redis {
 
 
     private Redis() {
-
     }
 
     public synchronized static JedisPool getCachePool() {
@@ -44,7 +42,7 @@ public class Redis {
         poolConfig.setTestWhileIdle(true);
         poolConfig.setNumTestsPerEvictionRun(3);
         poolConfig.setBlockWhenExhausted(true);
-        instance = new JedisPool(poolConfig, REDIS_HOSTNAME, 6380, 1000, REDIS_KEY, true);
+        instance = new JedisPool(poolConfig, REDIS_HOSTNAME, 6379, 1000, false);
         return instance;
     }
 
